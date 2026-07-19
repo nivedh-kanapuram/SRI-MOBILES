@@ -15,6 +15,8 @@ interface AdminBooking {
   deviceType: string; brand: string; model: string; problem: string;
   status: string; adminNotes: string | null; createdAt: string;
   beforeImage: string | null; afterImage: string | null;
+  serviceType: string; visitDate: string | null; visitTimeSlot: string | null;
+  pickupAddress: string | null; pickupDate: string | null; pickupTimeSlot: string | null;
   user: { name: string; email: string }; review: AdminReview | null;
 }
 
@@ -34,6 +36,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [serviceFilter, setServiceFilter] = useState('all');
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/auth/signin');
@@ -73,7 +76,8 @@ export default function AdminPage() {
     return `https://wa.me/${booking.phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
   };
 
-  const filtered = filter === 'all' ? bookings : bookings.filter(b => b.status === filter);
+  const filtered = (serviceFilter === 'all' ? bookings : bookings.filter(b => b.serviceType === serviceFilter))
+    .filter(b => filter === 'all' || b.status === filter);
 
   if (status === 'loading' || loading) {
     return <div className="min-h-screen bg-dark-950 flex items-center justify-center"><Loader2 className="w-8 h-8 text-electric-500 animate-spin" /></div>;
@@ -115,6 +119,17 @@ export default function AdminPage() {
         )}
 
         <div className="flex items-center gap-1.5 sm:gap-2 mb-6 overflow-x-auto pb-2 -mx-1 px-1">
+          {[
+            { value: 'all', label: 'All Bookings' },
+            { value: 'self_visit', label: 'Self Visit' },
+            { value: 'pickup', label: 'Doorstep Pickup' },
+          ].map(f => (
+            <button key={f.value} onClick={() => setServiceFilter(f.value)}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${serviceFilter === f.value ? 'bg-electric-500/10 border border-electric-500/30 text-electric-400' : 'bg-dark-800/50 border border-dark-700 text-dark-400 hover:border-dark-600'}`}>
+              {f.label}
+            </button>
+          ))}
+          <div className="w-px h-6 bg-dark-700 mx-1" />
           {['all', 'pending', 'in_progress', 'completed', 'cancelled'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${filter === f ? 'bg-electric-500/10 border border-electric-500/30 text-electric-400' : 'bg-dark-800/50 border border-dark-700 text-dark-400 hover:border-dark-600'}`}>
@@ -140,6 +155,9 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-white font-semibold text-[15px] sm:text-base truncate">{booking.fullName}</h3>
                         <span className="text-dark-500 text-[13px] sm:text-[15px] flex-shrink-0">{booking.phone}</span>
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${booking.serviceType === 'pickup' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20'}`}>
+                          {booking.serviceType === 'pickup' ? 'Doorstep Pickup' : 'Self Visit'}
+                        </span>
                       </div>
                       <p className="text-dark-400 text-[13px] sm:text-[15px] truncate">{booking.brand} {booking.model} ({booking.deviceType})</p>
                       {booking.trackingId && (

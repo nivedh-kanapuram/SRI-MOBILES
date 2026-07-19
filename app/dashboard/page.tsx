@@ -17,6 +17,8 @@ interface Booking {
   id: string; trackingId: string | null; fullName: string; phone: string; email: string | null;
   deviceType: string; brand: string; model: string; problem: string;
   status: string; createdAt: string; review: Review | null;
+  serviceType: string; visitDate: string | null; visitTimeSlot: string | null;
+  pickupDate: string | null; pickupTimeSlot: string | null;
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
@@ -117,12 +119,22 @@ export default function DashboardPage() {
                         {booking.deviceType === 'mobile' ? <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-electric-400" /> : <Laptop className="w-4 h-4 sm:w-5 sm:h-5 text-electric-400" />}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-white font-semibold text-[15px] sm:text-base truncate">{booking.brand} {booking.model}</h3>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="text-white font-semibold text-[15px] sm:text-base truncate">{booking.brand} {booking.model}</h3>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${booking.serviceType === 'pickup' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20'}`}>
+                            {booking.serviceType === 'pickup' ? 'Pickup' : 'Visit'}
+                          </span>
+                        </div>
                         <p className="text-dark-400 text-[13px] sm:text-[15px] mt-0.5 line-clamp-1">{booking.problem}</p>
                         <div className="flex items-center gap-2 sm:gap-3 mt-1.5 text-xs sm:text-[13px] text-dark-500">
                           <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(booking.createdAt).toLocaleDateString('en-IN')}</span>
                           {booking.trackingId && (
                             <span className="flex items-center gap-1 text-electric-400 font-mono"><Search className="w-3 h-3" /> {booking.trackingId}</span>
+                          )}
+                          {(booking.visitDate || booking.pickupDate) && (
+                            <span className="flex items-center gap-1 text-dark-400">
+                              <Clock className="w-3 h-3" /> {booking.visitDate || booking.pickupDate}
+                            </span>
                           )}
                         </div>
                       </div>

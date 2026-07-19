@@ -19,8 +19,9 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    const { fullName, phone, email, deviceType, brand, model: deviceModel, problem } = await req.json();
-    if (!fullName || !phone || !deviceType || !brand || !deviceModel || !problem) {
+    const body = await req.json();
+    const { fullName, phone, email, deviceType, brand, model: deviceModel, problem, serviceType, visitDate, visitTimeSlot, pickupAddress, pickupLandmark, pincode, pickupDate, pickupTimeSlot } = body;
+    if (!fullName || !phone || !deviceType || !brand || !deviceModel || !problem || !serviceType) {
       return NextResponse.json({ error: 'All required fields must be filled' }, { status: 400 });
     }
     const userId = (session.user as { id: string }).id;
@@ -30,10 +31,21 @@ export async function POST(req: Request) {
     const trackingId = `SM${year}-${String(count + 1).padStart(4, '0')}`;
 
     const booking = await prisma.booking.create({
-      data: { userId, fullName, phone, email, deviceType, brand, model: deviceModel, problem, trackingId },
+      data: {
+        userId, fullName, phone, email, deviceType, brand, model: deviceModel, problem, trackingId,
+        serviceType,
+        ...(serviceType === 'self_visit' ? { visitDate, visitTimeSlot } : {}),
+        ...(serviceType === 'pickup' ? { pickupAddress, pickupLandmark, pincode, pickupDate, pickupTimeSlot } : {}),
+      },
     });
-    return NextResponse.json(booking, { status: 201 });
-  } catch {
+
+    const isPickup = serviceType === 'pickup';
+    const waMessage = isPickup
+      ? `Your pickup booking has been confirmed!%0A%0ATracking ID: ${trackingId}%0ADevice: ${brand} ${deviceModel}%0APickup Date: ${pickupDate}%0ATime Slot: ${pickupTimeSlot}%0A%0AOur team will arrive during your selected time slot.%0A%0A-Sri Mobiles`
+      : `Your repair booking has been confirmed!%0A%0ATracking ID: ${trackingId}%0ADevice: ${brand} ${deviceModel}%0AVisit Date: ${visitDate}%0ATime: ${visitTimeSlot}%0A%0APlease visit Sri Mobiles on your selected date and time.%0A%0A-Sri Mobiles`;
+
+    return NextResponse.json({ ...booking, waMessage }, { status: 201 });
+  } catch (e) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
