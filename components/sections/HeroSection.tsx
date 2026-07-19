@@ -117,6 +117,11 @@ export function HeroSection() {
           animate="visible"
           className="max-w-4xl mx-auto text-center"
         >
+          <motion.div variants={itemVariants} className="flex flex-col items-center mb-6">
+            <img src="/images/logo.png" alt="Sri Mobiles" className="w-[80px] h-[80px] sm:w-[100px] sm:h-[100px] rounded-full border border-white/20 object-cover shadow-[0_0_20px_rgba(255,255,255,0.15)] mb-4" />
+            <p className="text-electric-400 text-xs sm:text-sm uppercase tracking-[0.15em] font-medium">Multi-Branded Mobile & Laptop Repair Service Partner</p>
+          </motion.div>
+
           <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-6">
             <Badge variant="electric" dot>
               Trusted by 12,000+ Customers

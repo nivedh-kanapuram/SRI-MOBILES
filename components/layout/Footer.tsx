@@ -25,7 +25,7 @@ export function Footer() {
                 <img src="/images/logo.png" alt="Sri Mobiles" className="w-[53px] h-[53px] rounded-full border border-white object-cover shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
                 <div className="flex flex-col">
                   <span className="text-white font-bold text-lg leading-tight">Sri Mobiles</span>
-                  <span className="text-electric-400 text-[10px] uppercase tracking-widest">Service Center</span>
+                  <span className="text-electric-400 text-[10px] uppercase tracking-widest">Multi-Branded Service Partner</span>
                 </div>
               </Link>
               <p className="text-dark-400 text-[15px] leading-relaxed mb-6 max-w-md">

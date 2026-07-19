@@ -70,7 +70,7 @@ export function Navbar() {
               <img src="/images/logo.png" alt="Sri Mobiles" className="w-[43px] h-[43px] rounded-full border border-white object-cover shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
               <div className="flex flex-col">
                 <span className="text-white font-bold text-lg leading-tight tracking-tight">Sri Mobiles</span>
-                <span className="text-electric-400 text-[10px] uppercase tracking-widest">Service Center</span>
+                <span className="text-electric-400 text-[10px] uppercase tracking-widest">Multi-Branded Service Partner</span>
               </div>
             </Link>
 
@@ -180,7 +180,13 @@ export function Navbar() {
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-8">
-                <span className="text-white font-bold text-lg">Menu</span>
+                <Link href="/" className="flex items-center gap-2.5" onClick={() => setIsMobileMenuOpen(false)}>
+                  <img src="/images/logo.png" alt="Sri Mobiles" className="w-[36px] h-[36px] rounded-full border border-white/20 object-cover" />
+                  <div className="flex flex-col">
+                    <span className="text-white font-bold text-sm leading-tight">Sri Mobiles</span>
+                    <span className="text-electric-400 text-[8px] uppercase tracking-widest">Multi-Branded Service Partner</span>
+                  </div>
+                </Link>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-2 rounded-lg text-dark-400 hover:text-white hover:bg-white/5"

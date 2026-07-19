@@ -53,6 +53,10 @@ export function ContactSection() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-2 space-y-3 sm:space-y-4"
           >
+            <div className="flex flex-col items-center lg:items-start mb-6">
+              <img src="/images/logo.png" alt="Sri Mobiles" className="w-[70px] h-[70px] rounded-full border border-white/20 object-cover shadow-[0_0_15px_rgba(255,255,255,0.1)] mb-3" />
+              <p className="text-electric-400 text-[11px] uppercase tracking-[0.15em] font-medium text-center lg:text-left">Multi-Branded Mobile & Laptop Repair Service Partner</p>
+            </div>
             {contactCards.map((card, i) => (
               <motion.div
                 key={card.label}
