@@ -4,7 +4,6 @@ import { WhatsAppButton } from '@/components/layout/WhatsAppButton';
 import { ScrollProgress } from '@/components/layout/ScrollProgress';
 import { BackToTop } from '@/components/layout/BackToTop';
 import { HeroSection } from '@/components/sections/HeroSection';
-import { AboutSection } from '@/components/sections/AboutSection';
 import { BrandsSection } from '@/components/sections/BrandsSection';
 import { ServicesSection } from '@/components/sections/ServicesSection';
 import { WhyChooseUsSection } from '@/components/sections/WhyChooseUsSection';
@@ -21,7 +20,6 @@ export default function HomePage() {
       <ScrollProgress />
       <Navbar />
       <HeroSection />
-      <AboutSection />
       <BrandsSection />
       <ServicesSection />
       <WhyChooseUsSection />
