@@ -16,27 +16,26 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-dark-950 border-t border-white/5">
+    <footer className="bg-white border-t border-gray-200">
       <Container>
         <div className="py-12 md:py-16">
           <div className="grid gap-10 grid-cols-1 md:grid-cols-4 xl:grid-cols-[2fr_1fr_1fr_1fr]">
             <div>
-              <Link href="/" className="flex items-center gap-3 mb-5">
-                <img src="/images/logo.png" alt="Sri Mobiles" className="w-[53px] h-[53px] rounded-full border border-white object-cover shadow-[0_0_8px_rgba(255,255,255,0.4)]" />
+              <Link href="/" className="flex items-start gap-3 mb-5">
                 <div className="flex flex-col">
-                  <span className="text-white font-bold text-lg leading-tight">Sri Mobiles</span>
-                  <span className="text-electric-400 text-[10px] uppercase tracking-widest">Multi-Branded Service Partner</span>
+                  <span className="text-gray-900 font-cinzel font-bold text-lg leading-tight">Sri Mobiles</span>
+                  <span className="text-gold text-[10px] uppercase tracking-widest">Mobile & Laptop Service Center</span>
                 </div>
               </Link>
-              <p className="text-dark-400 text-[15px] leading-relaxed mb-6 max-w-md">
+              <p className="text-gray-500 text-[15px] leading-relaxed mb-6 max-w-md">
                 Hyderabad&apos;s trusted multi-brand mobile & laptop repair service center. Genuine parts, certified technicians, and same-day service with warranty.
               </p>
-              <div className="space-y-3 text-dark-400 text-[15px]">
-                <a href={`tel:${contactInfo.phone[0]}`} className="flex items-center gap-3 hover:text-cyan-400 transition-colors duration-300">
+              <div className="space-y-3 text-gray-500 text-[15px]">
+                <a href={`tel:${contactInfo.phone[0]}`} className="flex items-center gap-3 hover:text-sky-500 transition-colors duration-300">
                   <Phone className="w-4 h-4 flex-shrink-0" />
                   <span>{contactInfo.phone[0]}</span>
                 </a>
-                <a href={`mailto:${contactInfo.email}`} className="flex items-center gap-3 hover:text-cyan-400 transition-colors duration-300">
+                <a href={`mailto:${contactInfo.email}`} className="flex items-center gap-3 hover:text-sky-500 transition-colors duration-300">
                   <Mail className="w-4 h-4 flex-shrink-0" />
                   <span>{contactInfo.email}</span>
                 </a>
@@ -51,15 +50,15 @@ export function Footer() {
               </div>
             </div>
 
-            <div className="md:block">
-              <h3 className="text-white font-semibold text-[13px] uppercase tracking-wider mb-4">
+            <div className="hidden md:block">
+              <h3 className="text-gray-700 font-semibold text-xs uppercase tracking-wider mb-4">
                 Quick Links
               </h3>
-              <div className="h-0.5 w-12 bg-cyan-400 mb-6 rounded-full" />
-              <ul className="space-y-3 text-dark-400 text-[15px]">
+              <div className="h-0.5 w-12 bg-gold rounded-full mb-6" />
+              <ul className="space-y-3 text-gray-500 text-[15px]">
                 {navLinks.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="hover:text-cyan-400 transition-colors duration-300">
+                    <Link href={link.href} className="hover:text-sky-500 transition-colors duration-300">
                       {link.label}
                     </Link>
                   </li>
@@ -67,15 +66,15 @@ export function Footer() {
               </ul>
             </div>
 
-            <div className="md:block">
-              <h3 className="text-white font-semibold text-[13px] uppercase tracking-wider mb-4">
+            <div className="hidden md:block">
+              <h3 className="text-gray-700 font-semibold text-xs uppercase tracking-wider mb-4">
                 Services
               </h3>
-              <div className="h-0.5 w-12 bg-cyan-400 mb-6 rounded-full" />
-              <ul className="space-y-3 text-dark-400 text-[15px]">
+              <div className="h-0.5 w-12 bg-gold rounded-full mb-6" />
+              <ul className="space-y-3 text-gray-500 text-[15px]">
                 {footerSections.find((section) => section.title === 'Services')?.links.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="hover:text-cyan-400 transition-colors duration-300">
+                    <Link href={link.href} className="hover:text-sky-500 transition-colors duration-300">
                       {link.label}
                     </Link>
                   </li>
@@ -83,15 +82,15 @@ export function Footer() {
               </ul>
             </div>
 
-            <div className="md:block">
-              <h3 className="text-white font-semibold text-[13px] uppercase tracking-wider mb-4">
+            <div className="hidden md:block">
+              <h3 className="text-gray-700 font-semibold text-xs uppercase tracking-wider mb-4">
                 Brands
               </h3>
-              <div className="h-0.5 w-12 bg-cyan-400 mb-6 rounded-full" />
-              <ul className="space-y-3 text-dark-400 text-[15px]">
+              <div className="h-0.5 w-12 bg-gold rounded-full mb-6" />
+              <ul className="space-y-3 text-gray-500 text-[15px]">
                 {footerSections.find((section) => section.title === 'Brands')?.links.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="hover:text-cyan-400 transition-colors duration-300">
+                    <Link href={link.href} className="hover:text-sky-500 transition-colors duration-300">
                       {link.label}
                     </Link>
                   </li>
@@ -101,7 +100,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="py-6 border-t border-white/5">
+        <div className="py-6 border-t border-gray-200">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 sm:gap-4">
               {socialLinks.map((social) => (
@@ -110,7 +109,7 @@ export function Footer() {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 rounded-lg text-dark-500 hover:text-electric-400 hover:bg-white/5 transition-all"
+                  className="p-3 rounded-lg text-gray-400 hover:text-gold hover:bg-gray-100 transition-all"
                   aria-label={social.name}
                 >
                   {socialIcons[social.icon]}
@@ -118,8 +117,9 @@ export function Footer() {
               ))}
             </div>
 
-            <p className="text-dark-500 text-xs sm:text-sm text-center sm:text-right">
-              © {currentYear} Sri Mobiles. All rights reserved.
+            <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-right">
+              &copy; {currentYear} Sri Mobiles. All rights reserved.
+              <Link href="/auth/signin" className="ml-3 text-gray-300 hover:text-gray-500 transition-colors">Admin</Link>
             </p>
           </div>
         </div>

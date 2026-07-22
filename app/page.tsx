@@ -5,9 +5,9 @@ import { ScrollProgress } from '@/components/layout/ScrollProgress';
 import { BackToTop } from '@/components/layout/BackToTop';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { BrandsSection } from '@/components/sections/BrandsSection';
+import { TrackRepairSection } from '@/components/sections/TrackRepairSection';
 import { ServicesSection } from '@/components/sections/ServicesSection';
 import { WhyChooseUsSection } from '@/components/sections/WhyChooseUsSection';
-import { TestimonialsSection } from '@/components/sections/TestimonialsSection';
 import { FAQSection } from '@/components/sections/FAQSection';
 import { GallerySection } from '@/components/sections/GallerySection';
 import { ContactSection } from '@/components/sections/ContactSection';
@@ -16,16 +16,16 @@ import { CTABanner } from '@/components/sections/CTABanner';
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-dark-950">
+    <main className="min-h-screen bg-white">
       <ScrollProgress />
       <Navbar />
       <HeroSection />
+      <TrackRepairSection />
       <BrandsSection />
       <ServicesSection />
       <WhyChooseUsSection />
-      <TestimonialsSection />
-      <FAQSection />
       <GallerySection />
+      <FAQSection />
       <ContactSection />
       <MapSection />
       <CTABanner />

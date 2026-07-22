@@ -1,30 +1,13 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const userId = (session.user as { id: string }).id;
-  const bookings = await prisma.booking.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-    include: { review: { select: { id: true, rating: true, comment: true, createdAt: true, approved: true } } },
-  });
-  return NextResponse.json(bookings);
-}
-
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await req.json();
-    const { fullName, phone, email, deviceType, brand, model: deviceModel, problem, serviceType, visitDate, visitTimeSlot, pickupAddress, pickupLandmark, pincode, pickupDate, pickupTimeSlot } = body;
+    const { fullName, phone, email, deviceType, brand, model: deviceModel, problem, issueCategory, additionalNotes, urgent, costEstimate, serviceType, visitDate, visitTimeSlot, pickupAddress, pickupLandmark, pincode, pickupLatitude, pickupLongitude, pickupDate, pickupTimeSlot, customerPhoto } = body;
     if (!fullName || !phone || !deviceType || !brand || !deviceModel || !problem || !serviceType) {
       return NextResponse.json({ error: 'All required fields must be filled' }, { status: 400 });
     }
-    const userId = (session.user as { id: string }).id;
 
     const year = new Date().getFullYear();
     const count = await prisma.booking.count();
@@ -32,10 +15,11 @@ export async function POST(req: Request) {
 
     const booking = await prisma.booking.create({
       data: {
-        userId, fullName, phone, email, deviceType, brand, model: deviceModel, problem, trackingId,
-        serviceType,
+        fullName, phone, email, deviceType, brand, model: deviceModel, problem, issueCategory: issueCategory || null, trackingId,
+        urgent: urgent || false, costEstimate: costEstimate || 'no', additionalNotes: additionalNotes || null,
+        serviceType, customerPhoto: customerPhoto || null,
         ...(serviceType === 'self_visit' ? { visitDate, visitTimeSlot } : {}),
-        ...(serviceType === 'pickup' ? { pickupAddress, pickupLandmark, pincode, pickupDate, pickupTimeSlot } : {}),
+        ...(serviceType === 'pickup' ? { pickupAddress, pickupLandmark, pincode, pickupLatitude: pickupLatitude || null, pickupLongitude: pickupLongitude || null, pickupDate, pickupTimeSlot } : {}),
       },
     });
 
@@ -46,6 +30,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ...booking, waMessage }, { status: 201 });
   } catch (e) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const msg = e instanceof Error ? e.message : 'Internal server error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

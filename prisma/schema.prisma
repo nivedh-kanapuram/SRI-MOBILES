@@ -23,8 +23,8 @@ model User {
 model Booking {
   id              String    @id @default(uuid())
   trackingId      String?   @unique
-  userId          String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id])
   fullName        String
   phone           String
   email           String?
@@ -32,16 +32,24 @@ model Booking {
   brand           String
   model           String
   problem         String
+  additionalNotes String?
+  issueCategory   String?
+  urgent          Boolean   @default(false)
+  costEstimate    String?   @default("no")
+  costEstimateAmount String?
   serviceType     String    @default("self_visit")
   visitDate       String?
   visitTimeSlot   String?
   pickupAddress   String?
   pickupLandmark  String?
   pincode         String?
+  pickupLatitude  Float?
+  pickupLongitude Float?
   pickupDate      String?
   pickupTimeSlot  String?
-  status          String    @default("pending")
+  status          String    @default("booking_confirmed")
   adminNotes      String?
+  customerPhoto   String?
   beforeImage     String?
   afterImage      String?
   review          Review?

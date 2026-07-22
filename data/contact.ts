@@ -16,8 +16,8 @@ export const socialLinks: SocialLink[] = [
 
 export const navLinks: NavLink[] = [
   { label: 'Home', href: '/' },
-  { label: 'Services', href: '/#services' },
   { label: 'Brands', href: '/#brands' },
+  { label: 'Services', href: '/#services' },
   { label: 'Why Us', href: '/#why-choose-us' },
   { label: 'Gallery', href: '/#gallery' },
   { label: 'Contact', href: '/#contact' },

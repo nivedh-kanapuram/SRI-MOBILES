@@ -9,18 +9,16 @@ export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="py-20 md:py-28 bg-dark-900/50 relative">
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-electric-500/20 to-transparent" />
-
+    <section id="faq" className="hidden md:block py-20 md:py-28 bg-white">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-electric-500/10 border border-electric-500/20 text-electric-400 text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-sm font-medium mb-4">
             FAQ
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-            Frequently Asked <span className="text-electric-400">Questions</span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            Frequently Asked <span className="text-gradient-gold">Questions</span>
           </h2>
-          <p className="text-dark-400">Everything you need to know about our repair services.</p>
+          <p className="text-gray-500">Everything you need to know about our repair services.</p>
         </div>
 
         <div className="space-y-3">
@@ -32,8 +30,8 @@ export function FAQSection() {
                 className={cn(
                   'rounded-2xl border transition-all duration-300',
                   isOpen
-                    ? 'bg-white/[0.03] border-electric-500/30 shadow-lg shadow-electric-500/5'
-                    : 'bg-white/[0.01] border-white/5 hover:border-white/10'
+                    ? 'bg-gray-50 border-gold/30 shadow-sm'
+                    : 'bg-white border-gray-100 hover:border-gray-200'
                 )}
               >
                 <button
@@ -44,13 +42,13 @@ export function FAQSection() {
                   <div className="flex items-center gap-3">
                     <div className={cn(
                       'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors',
-                      isOpen ? 'bg-electric-500/20 text-electric-400' : 'bg-dark-800 text-dark-500'
+                      isOpen ? 'bg-gold/20 text-gold' : 'bg-gray-100 text-gray-400'
                     )}>
                       {String(i + 1).padStart(2, '0')}
                     </div>
                     <span className={cn(
                       'font-medium text-[15px] md:text-base transition-colors',
-                      isOpen ? 'text-white' : 'text-dark-300'
+                      isOpen ? 'text-gray-900' : 'text-gray-600'
                     )}>
                       {faq.question}
                     </span>
@@ -58,7 +56,7 @@ export function FAQSection() {
                   <div
                     className={cn(
                       'flex-shrink-0 transition-all duration-200',
-                      isOpen ? 'rotate-180 text-electric-400' : 'text-dark-500'
+                      isOpen ? 'rotate-180 text-gold' : 'text-gray-400'
                     )}
                   >
                     <ChevronDown className="w-5 h-5" />
@@ -67,7 +65,7 @@ export function FAQSection() {
 
                 {isOpen && (
                   <div className="px-4 sm:px-5 pb-4 sm:pb-5 pl-12 sm:pl-16 md:pl-[4.5rem]">
-                    <p className="text-dark-400 text-[15px] leading-relaxed">
+                    <p className="text-gray-500 text-[15px] leading-relaxed">
                       {faq.answer}
                     </p>
                   </div>

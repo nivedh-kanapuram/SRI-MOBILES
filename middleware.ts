@@ -5,9 +5,9 @@ export default withAuth({
     authorized: ({ token, req }) => {
       const path = req.nextUrl.pathname;
       if (path.startsWith('/admin')) return token?.role === 'admin';
-      return !!token;
+      return false;
     },
   },
 });
 
-export const config = { matcher: ['/dashboard/:path*', '/admin/:path*', '/booking'] };
+export const config = { matcher: ['/admin/:path*'] };

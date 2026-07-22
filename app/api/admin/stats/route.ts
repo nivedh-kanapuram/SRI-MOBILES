@@ -9,8 +9,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   const total = await prisma.booking.count();
-  const pending = await prisma.booking.count({ where: { status: 'pending' } });
-  const inProgress = await prisma.booking.count({ where: { status: 'in_progress' } });
+  const pending = await prisma.booking.count({ where: { status: { in: ['booking_confirmed', 'device_received'] } } });
+  const inProgress = await prisma.booking.count({ where: { status: { in: ['diagnosis_complete', 'repair_in_progress', 'waiting_for_parts'] } } });
   const completed = await prisma.booking.count({ where: { status: 'completed' } });
   const cancelled = await prisma.booking.count({ where: { status: 'cancelled' } });
   const totalUsers = await prisma.user.count();

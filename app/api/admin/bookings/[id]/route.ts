@@ -9,7 +9,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   const { id } = await params;
-  const { status, adminNotes } = await req.json();
-  const booking = await prisma.booking.update({ where: { id }, data: { ...(status && { status }), ...(adminNotes !== undefined && { adminNotes }) } });
+  const { status, adminNotes, costEstimateAmount } = await req.json();
+
+  const booking = await prisma.booking.update({ where: { id }, data: { ...(status && { status }), ...(adminNotes !== undefined && { adminNotes }), ...(costEstimateAmount !== undefined && { costEstimateAmount }) } });
+
   return NextResponse.json(booking);
 }

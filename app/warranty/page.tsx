@@ -10,26 +10,26 @@ export const metadata: Metadata = {
 
 export default function WarrantyPage() {
   return (
-    <Section id="warranty" variant="gradient">
+    <Section id="warranty" variant="default">
       <Container size="md" padding="lg">
         <div className="space-y-8">
           <div className="space-y-4">
-            <Link href="/" className="text-electric-400 hover:text-electric-300 text-sm transition-colors">
+            <Link href="/" className="text-sky-500 hover:text-sky-600 text-sm transition-colors">
               ← Back to Home
             </Link>
-            <h1 className="text-4xl font-bold text-white">Warranty Policy</h1>
-            <p className="text-dark-400 text-sm">Last updated: January 1, 2024</p>
+            <h1 className="text-4xl font-bold text-gray-900">Warranty Policy</h1>
+            <p className="text-gray-400 text-sm">Last updated: January 1, 2024</p>
           </div>
 
-          <div className="p-6 rounded-2xl bg-electric-500/5 border border-electric-500/20">
-            <p className="text-electric-400 font-medium">
+          <div className="p-6 rounded-2xl bg-sky-50 border border-sky-200">
+            <p className="text-sky-600 font-medium">
               At Sri Mobiles, we stand behind every repair with a comprehensive warranty for your peace of mind.
             </p>
           </div>
 
-          <div className="prose prose-invert max-w-none space-y-8">
+          <div className="max-w-none space-y-8">
             <div className="space-y-4">
-              <h2 className="text-2xl font-semibold text-white">Warranty Coverage by Service Type</h2>
+              <h2 className="text-2xl font-semibold text-gray-900">Warranty Coverage by Service Type</h2>
               <div className="grid gap-3">
                 {[
                   { service: 'Mobile Screen Replacement', warranty: '6 months on parts & labor' },
@@ -41,17 +41,17 @@ export default function WarrantyPage() {
                   { service: 'Liquid Damage Repair', warranty: '90 days on parts & labor' },
                   { service: 'RAM & Storage Upgrades', warranty: '1 year on parts & labor' },
                 ].map((item) => (
-                  <div key={item.service} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5">
-                    <span className="text-white font-medium text-sm">{item.service}</span>
-                    <span className="text-electric-400 text-sm">{item.warranty}</span>
+                    <div key={item.service} className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100">
+                    <span className="text-gray-900 font-medium text-sm">{item.service}</span>
+                    <span className="text-sky-500 text-sm">{item.warranty}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-2xl font-semibold text-white">What&apos;s Covered</h2>
-              <ul className="text-dark-400 leading-relaxed space-y-2 list-disc list-inside">
+              <h2 className="text-2xl font-semibold text-gray-900">What&apos;s Covered</h2>
+              <ul className="text-gray-500 leading-relaxed space-y-2 list-disc list-inside">
                 <li>Defective parts used during the original repair</li>
                 <li>Labor issues related to the original repair workmanship</li>
                 <li>Same repair failing within the warranty period</li>
@@ -59,8 +59,8 @@ export default function WarrantyPage() {
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-2xl font-semibold text-white">What&apos;s NOT Covered</h2>
-              <ul className="text-dark-400 leading-relaxed space-y-2 list-disc list-inside">
+              <h2 className="text-2xl font-semibold text-gray-900">What&apos;s NOT Covered</h2>
+              <ul className="text-gray-500 leading-relaxed space-y-2 list-disc list-inside">
                 <li>New accidental or physical damage after the repair</li>
                 <li>Liquid or water damage occurring after the repair</li>
                 <li>Software issues, virus damage, or data loss</li>
@@ -71,8 +71,8 @@ export default function WarrantyPage() {
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-2xl font-semibold text-white">How to Claim Warranty</h2>
-              <ol className="text-dark-400 leading-relaxed space-y-2 list-decimal list-inside">
+              <h2 className="text-2xl font-semibold text-gray-900">How to Claim Warranty</h2>
+              <ol className="text-gray-500 leading-relaxed space-y-2 list-decimal list-inside">
                 <li>Bring your device to our center along with the repair receipt</li>
                 <li>Our technician will verify the warranty claim</li>
                 <li>If covered, the repair will be performed at no additional cost</li>
@@ -81,8 +81,8 @@ export default function WarrantyPage() {
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-2xl font-semibold text-white">Important Notes</h2>
-              <p className="text-dark-400 leading-relaxed">
+              <h2 className="text-2xl font-semibold text-gray-900">Important Notes</h2>
+              <p className="text-gray-500 leading-relaxed">
                 Warranty is non-transferable and applies only to the original customer. The warranty receipt must be presented for any claim. Sri Mobiles reserves the right to determine whether a warranty claim is valid. Contact us at 9948299426 or visit our center for warranty assistance.
               </p>
             </div>

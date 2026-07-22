@@ -25,21 +25,21 @@ export const SectionTitle = forwardRef<HTMLDivElement, SectionTitleProps>(
         {...props}
       >
         {badge && (
-          <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-electric-500/10 border border-electric-500/20 text-electric-400 text-xs sm:text-sm font-medium mb-3 sm:mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-electric-500 animate-pulse" />
+          <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-xs sm:text-sm font-medium mb-3 sm:mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-gold" />
             {badge}
           </span>
         )}
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">
           {title}{' '}
           {highlight && (
-            <span className="bg-gradient-to-r from-electric-400 to-electric-600 bg-clip-text text-transparent">
+            <span className="text-gradient-gold">
               {highlight}
             </span>
           )}
         </h2>
         {description && (
-          <p className="mt-3 sm:mt-4 text-base sm:text-lg text-dark-400 leading-relaxed">
+          <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-500 leading-relaxed">
             {description}
           </p>
         )}

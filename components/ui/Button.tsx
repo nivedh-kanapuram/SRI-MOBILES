@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'electric' | 'glass';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'sky' | 'gold' | 'whatsapp';
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'icon';
   loading?: boolean;
   fullWidth?: boolean;
@@ -25,12 +25,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ...props
   }, ref) => {
     const variants = {
-      primary: 'bg-electric-500 text-white hover:bg-electric-600 shadow-electric hover:shadow-electric-hover',
-      secondary: 'bg-dark-800 text-white hover:bg-dark-700 border border-dark-700',
-      outline: 'border-2 border-electric-500 text-electric-500 hover:bg-electric-500/10',
-      ghost: 'text-dark-300 hover:text-white hover:bg-dark-800',
-      electric: 'bg-gradient-to-r from-electric-500 to-electric-600 text-white shadow-electric hover:shadow-electric-hover',
-      glass: 'bg-white/5 backdrop-blur-xl border border-white/10 text-white hover:bg-white/10',
+      primary: 'bg-sky-500 text-white hover:bg-sky-600 shadow-sm',
+      secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200',
+      outline: 'border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50',
+      ghost: 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+      sky: 'bg-sky-500 text-white hover:bg-sky-600 shadow-sm',
+      gold: 'bg-gradient-to-r from-gold to-gold-light text-white shadow-sm hover:shadow-md hover:brightness-105',
+      whatsapp: 'bg-[#25D366] text-white hover:bg-[#1DA851] shadow-sm',
     };
 
     const sizes = {
@@ -43,7 +44,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const classes = cn(
       'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-electric-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-950',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
       'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
       'active:scale-[0.98]',
       variants[variant],

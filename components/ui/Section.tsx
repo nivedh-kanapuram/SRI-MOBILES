@@ -12,10 +12,10 @@ interface SectionProps extends HTMLAttributes<HTMLElement> {
 export const Section = forwardRef<HTMLElement, SectionProps>(
   ({ className, variant = 'default', padding = 'xl', id, children, ...props }, ref) => {
     const variants = {
-      default: 'bg-dark-950',
-      alt: 'bg-dark-900/50',
-      dark: 'bg-dark-950',
-      gradient: 'bg-gradient-to-b from-dark-950 via-dark-900 to-dark-950',
+      default: 'bg-white',
+      alt: 'bg-gray-50',
+      dark: 'bg-gray-900',
+      gradient: 'bg-gradient-to-b from-white via-gray-50 to-white',
     };
 
     const paddings = {

@@ -4,7 +4,7 @@ import { forwardRef, HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'electric' | 'success' | 'warning' | 'premium' | 'outline';
+  variant?: 'default' | 'gold' | 'success' | 'warning' | 'sky' | 'outline' | 'premium';
   size?: 'sm' | 'md' | 'lg';
   dot?: boolean;
 }
@@ -13,13 +13,14 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   ({ className, variant = 'default', size = 'md', dot = false, children, ...props }, ref) => {
     const baseStyles = 'inline-flex items-center gap-1.5 font-medium rounded-full transition-colors';
 
-    const variants = {
-      default: 'bg-dark-700 text-dark-300',
-      electric: 'bg-electric-500/20 text-electric-400 border border-electric-500/30',
-      success: 'bg-green-500/20 text-green-400 border border-green-500/30',
-      warning: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-      premium: 'bg-gradient-to-r from-electric-500 to-electric-600 text-white shadow-electric',
-      outline: 'bg-transparent text-dark-300 border border-dark-600 hover:border-electric-500/50',
+    const variants: Record<string, string> = {
+      default: 'bg-gray-100 text-gray-600',
+      gold: 'bg-gold/10 text-gold border border-gold/20',
+      success: 'bg-green-50 text-green-600 border border-green-200',
+      warning: 'bg-amber-50 text-amber-600 border border-amber-200',
+      sky: 'bg-sky-50 text-sky-600 border border-sky-200',
+      outline: 'bg-transparent text-gray-500 border border-gray-200 hover:border-gray-300',
+      premium: 'bg-gradient-to-r from-gold to-gold-light text-white',
     };
 
     const sizes = {
@@ -38,12 +39,13 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
           <span
             className={cn(
               'w-1.5 h-1.5 rounded-full',
-              variant === 'electric' && 'bg-electric-500',
+              variant === 'gold' && 'bg-gold',
               variant === 'success' && 'bg-green-500',
               variant === 'warning' && 'bg-amber-500',
+              variant === 'sky' && 'bg-sky-500',
               variant === 'premium' && 'bg-white',
-              variant === 'default' && 'bg-dark-500',
-              variant === 'outline' && 'bg-dark-500'
+              variant === 'default' && 'bg-gray-400',
+              variant === 'outline' && 'bg-gray-400'
             )}
           />
         )}

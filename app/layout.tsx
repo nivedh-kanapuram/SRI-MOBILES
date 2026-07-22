@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Space_Grotesk } from 'next/font/google';
+import { Inter, Cinzel, Montserrat, Playfair_Display, Cormorant_Garamond } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/Providers';
 
@@ -9,14 +9,34 @@ const inter = Inter({
   display: 'swap',
 });
 
-const spaceGrotesk = Space_Grotesk({
+const cinzel = Cinzel({
   subsets: ['latin'],
-  variable: '--font-space-grotesk',
+  variable: '--font-cinzel',
+  display: 'swap',
+});
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  variable: '--font-montserrat',
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  variable: '--font-cormorant',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://srimobiles.in'),
+  icons: { icon: '/favicon.png' },
   title: {
     default: 'Sri Mobiles - Multi Brand Mobile & Laptop Service Center | Hyderabad',
     template: '%s | Sri Mobiles',
@@ -85,7 +105,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} dark`}>
+    <html lang="en" className={`${inter.variable} ${cinzel.variable} ${montserrat.variable} ${playfair.variable} ${cormorant.variable}`}>
       <head>
         <link rel="icon" href="/images/logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="/images/logo.png" />
@@ -156,7 +176,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className="font-sans antialiased bg-dark-950 text-white">
+      <body className="font-sans antialiased bg-white text-gray-900">
         <Providers>{children}</Providers>
       </body>
     </html>
