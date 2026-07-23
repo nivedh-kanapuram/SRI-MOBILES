@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
-import { Search, Clock, CheckCircle, AlertCircle, XCircle, Loader2, Smartphone, Laptop, Phone, Hash } from 'lucide-react';
+import { Search, Clock, CheckCircle, AlertCircle, XCircle, Loader2, Smartphone, Laptop, Phone, Hash, Copy } from 'lucide-react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import CopyButton from '@/components/ui/CopyButton';
 import ProblemDescription from '@/components/ui/ProblemDescription';
@@ -44,6 +44,13 @@ export default function TrackPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
+  const [toast, setToast] = useState('');
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(''), 2500);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const doSearch = async (mode: SearchMode, value: string) => {
     setLoading(true);
@@ -100,6 +107,12 @@ export default function TrackPage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-20 sm:pt-24 pb-12 sm:pb-16 px-4">
       <div className="max-w-2xl mx-auto">
+        {toast && (
+          <div className="fixed top-24 right-4 z-50 px-4 py-2.5 rounded-xl shadow-lg border bg-green-50 border-green-200 text-green-700 text-sm font-medium transition-all duration-200 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            {toast}
+          </div>
+        )}
         <Breadcrumbs items={[{ label: 'Track Repair' }]} />
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -162,7 +175,7 @@ export default function TrackPage() {
                   <p className="text-gray-400 text-[13px] uppercase tracking-wider">Booking ID</p>
                   <p className="text-gray-900 font-bold text-lg flex items-center gap-2">
                     {booking.trackingId}
-                    <CopyButton text={booking.trackingId || ''} className="text-gray-400 hover:text-sky-500" />
+                    <CopyButton text={booking.trackingId || ''} className="text-gray-400 hover:text-sky-500" onCopy={() => setToast('Copied successfully')} />
                   </p>
                 </div>
                 <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-medium border ${sc.border} ${sc.color} ${sc.bg}`}>

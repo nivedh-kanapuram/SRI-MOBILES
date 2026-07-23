@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Clock, AlertCircle, CheckCircle, XCircle, Users, Smartphone, ChevronDown, MessageCircle, ThumbsUp, ThumbsDown, MapPin, Tag, Calendar, Clock3, Store, Upload, X, Save, Copy, Phone, ChevronUp, Maximize2 } from 'lucide-react';
+import { Loader2, Clock, AlertCircle, CheckCircle, XCircle, Users, Smartphone, ChevronDown, MessageCircle, ThumbsUp, ThumbsDown, MapPin, Tag, Calendar, Clock3, Store, Upload, X, Save, Copy, Phone, ChevronUp, Maximize2, Trash2, Download, Star } from 'lucide-react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import ProblemDescription from '@/components/ui/ProblemDescription';
 
@@ -22,17 +22,19 @@ interface AdminBooking {
   pickupAddress: string | null; pickupLandmark: string | null;
   pickupLatitude: number | null; pickupLongitude: number | null;
   pickupDate: string | null; pickupTimeSlot: string | null;
-  urgent: boolean; costEstimate: string | null; costEstimateAmount: string | null;
+  costEstimate: string | null; costEstimateAmount: string | null;
+  customerRating: number | null;
   user: { name: string; email: string }; review: AdminReview | null;
 }
 
-interface Stats { total: number; pending: number; inProgress: number; completed: number; }
+interface Stats { total: number; pending: number; inProgress: number; completed: number; avgRating: number; }
 
 interface DraftChanges {
   status?: string;
   beforeImage?: string;
   afterImage?: string;
   costEstimateAmount?: string;
+  customerRating?: number;
 }
 
 const statuses = [
@@ -54,13 +56,17 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [serviceFilter, setServiceFilter] = useState('all');
-  const [urgentFilter, setUrgentFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [draftChanges, setDraftChanges] = useState<Record<string, DraftChanges>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [expandedProblems, setExpandedProblems] = useState<Set<string>>(new Set());
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [brandFilter, setBrandFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/auth/signin');
@@ -154,6 +160,60 @@ export default function AdminPage() {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, review: b.review ? { ...b.review, approved } : null } : b));
   };
 
+  const rateBooking = async (id: string, rating: number) => {
+    setDraftChanges(prev => ({
+      ...prev,
+      [id]: { ...prev[id], customerRating: rating },
+    }));
+    try {
+      await fetch(`/api/admin/bookings/${id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerRating: rating }),
+      });
+      setBookings(prev => prev.map(b => b.id === id ? { ...b, customerRating: rating } : b));
+      setToast({ message: 'Rating saved successfully', type: 'success' });
+    } catch {
+      setToast({ message: 'Failed to save rating', type: 'error' });
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/admin/bookings/${deleteId}`, { method: 'DELETE' });
+      setBookings(prev => prev.filter(b => b.id !== deleteId));
+      setToast({ message: 'Booking deleted successfully', type: 'success' });
+    } catch {
+      setToast({ message: 'Failed to delete booking', type: 'error' });
+    }
+    setDeleting(false);
+    setDeleteId(null);
+  };
+
+  const exportCSV = () => {
+    const headers = ['Booking ID', 'Date', 'Customer Name', 'Phone', 'Device Brand', 'Device Model', 'Issue', 'Status', 'Rating'];
+    const rows = filtered.map(b => [
+      b.trackingId || '',
+      new Date(b.createdAt).toLocaleDateString('en-IN'),
+      b.fullName,
+      b.phone,
+      b.brand,
+      b.model,
+      b.issueCategory || '',
+      statuses.find(s => s.value === b.status)?.label || b.status,
+      b.customerRating ?? '',
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sri-mobiles-bookings-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const getWhatsAppLink = (booking: AdminBooking) => {
     const sc = statuses.find(s => s.value === booking.status) || statuses[0];
     const text = `Hi ${booking.fullName},\n\nYour device (${booking.brand} ${booking.model}) repair status has been updated to: ${sc.label}\n\nTracking ID: ${booking.trackingId || 'N/A'}\n\nSri Mobiles\n9948299426\nDilsukh Nagar, Chaitanyapuri, Hyderabad`;
@@ -187,22 +247,25 @@ ${booking.trackingId || 'N/A'}
     setToast({ message: 'Booking ID copied', type: 'success' });
   };
 
+  const uniqueBrands = useMemo(() => [...new Set(bookings.map(b => b.brand))].sort(), [bookings]);
+
   const filtered = useMemo(() => {
     let list = serviceFilter === 'all' ? bookings : bookings.filter(b => b.serviceType === serviceFilter);
     list = list.filter(b => filter === 'all' || b.status === filter);
-    if (urgentFilter !== 'all') {
-      list = list.filter(b => urgentFilter === 'urgent' ? b.urgent : !b.urgent);
+    if (brandFilter) {
+      list = list.filter(b => b.brand === brandFilter);
     }
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter(b =>
         (b.trackingId && b.trackingId.toLowerCase().includes(q)) ||
         b.fullName.toLowerCase().includes(q) ||
-        b.phone.includes(q)
+        b.phone.includes(q) ||
+        b.model.toLowerCase().includes(q)
       );
     }
     return list;
-  }, [bookings, serviceFilter, filter, urgentFilter, searchQuery]);
+  }, [bookings, serviceFilter, filter, brandFilter, searchQuery]);
 
   if (status === 'loading' || loading) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="w-8 h-8 text-sky-500 animate-spin" /></div>;
@@ -259,12 +322,13 @@ ${booking.trackingId || 'N/A'}
         </div>
 
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-8">
             {[
               { label: 'Total Bookings', value: stats.total, icon: <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-sky-500' },
               { label: 'Pending', value: stats.pending, icon: <Clock className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-yellow-500' },
               { label: 'In Progress', value: stats.inProgress, icon: <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-blue-500' },
               { label: 'Completed', value: stats.completed, icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-green-500' },
+              { label: 'Avg Rating', value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—', icon: <Star className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-amber-500' },
             ].map((s) => (
               <div key={s.label} className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-2.5 sm:p-5 shadow-card">
                 <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl ${s.color} flex items-center justify-center text-white mb-1.5 sm:mb-3 shadow-sm`}>{s.icon}</div>
@@ -275,25 +339,24 @@ ${booking.trackingId || 'N/A'}
           </div>
         )}
 
-        {/* Search + Urgent Filter */}
+        {/* Date Filter + Search + Export */}
         <div className="flex flex-col sm:flex-row gap-2 mb-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+              className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-sky-400" />
+            <span className="text-gray-400 text-sm">to</span>
+            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+              className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-sky-400" />
+          </div>
           <div className="relative flex-1">
             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by Booking ID, Name, or Phone..."
               className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-gray-200 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
-          <div className="flex gap-1.5">
-            {[
-              { value: 'all', label: 'All' },
-              { value: 'urgent', label: '🔴 Urgent' },
-              { value: 'normal', label: 'Normal' },
-            ].map(f => (
-              <button key={f.value} onClick={() => setUrgentFilter(f.value)}
-                className={`px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${urgentFilter === f.value ? 'bg-red-50 border border-red-200 text-red-600' : 'bg-white border border-gray-200 text-gray-500 hover:border-gray-300'}`}>
-                {f.label}
-              </button>
-            ))}
-          </div>
+          <button onClick={exportCSV}
+            className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 text-sm font-medium transition-all">
+            <Download className="w-4 h-4" /> Export Bookings
+          </button>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-6">
@@ -317,6 +380,16 @@ ${booking.trackingId || 'N/A'}
                 {statuses.map(s => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
+              </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-gray-400" />
+            </div>
+          </div>
+          <div className="w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
+              <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}
+                className="appearance-none w-full sm:w-auto bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-2 sm:py-2 text-sm font-medium text-gray-600 cursor-pointer focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all">
+                <option value="">All Brands</option>
+                {uniqueBrands.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
               <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-gray-400" />
             </div>
@@ -347,9 +420,6 @@ ${booking.trackingId || 'N/A'}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {booking.urgent && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-red-50 text-red-600 border border-red-200">URGENT</span>
-                      )}
                       {booking.costEstimate === 'yes' && (
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-600 border border-amber-200">Cost?</span>
                       )}
@@ -386,7 +456,6 @@ ${booking.trackingId || 'N/A'}
                     <div className="text-[13px] text-gray-600 space-y-0.5">
                       {booking.issueCategory && <p><span className="text-gray-400">Selected Issue:</span> {booking.issueCategory}</p>}
                       <p><span className="text-gray-400">Cost Estimate Requested:</span> {booking.costEstimate === 'yes' ? 'Yes' : 'No'}</p>
-                      <p><span className="text-gray-400">Urgent Repair Required:</span> {booking.urgent ? 'Yes' : 'No'}</p>
                     </div>
                   </div>
 
@@ -541,6 +610,10 @@ ${booking.trackingId || 'N/A'}
                         <X className="w-4 h-4" /> Discard Changes
                       </button>
                     )}
+                    <button onClick={() => setDeleteId(booking.id)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all">
+                      <Trash2 className="w-4 h-4" /> Delete
+                    </button>
                   </div>
 
                   {/* WhatsApp Button */}
@@ -548,6 +621,21 @@ ${booking.trackingId || 'N/A'}
                     className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 border border-[#25D366]/20 transition-all">
                     <MessageCircle className="w-4 h-4" /> Send WhatsApp Update
                   </a>
+
+                  {/* Customer Rating */}
+                  {booking.status === 'completed' && !booking.customerRating && (
+                    <div className="border-t border-gray-100 pt-3 mt-3">
+                      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Customer Satisfaction</p>
+                      <div className="flex items-center gap-1">
+                        {[1,2,3,4,5].map(star => (
+                          <button key={star} onClick={() => rateBooking(booking.id, star)}
+                            className={`text-lg transition-all hover:scale-110 ${(draftChanges[booking.id]?.customerRating ?? 0) >= star ? 'text-amber-400' : 'text-gray-300'}`}>
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Review Approval */}
                   {booking.review && !booking.review.approved && (
@@ -576,9 +664,6 @@ ${booking.trackingId || 'N/A'}
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-gray-900 font-semibold text-[15px] sm:text-base truncate">{booking.fullName}</h3>
                           <span className="text-gray-400 text-[13px] sm:text-[15px] flex-shrink-0">{booking.phone}</span>
-                          {booking.urgent && (
-                            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-red-50 text-red-600 border border-red-200">URGENT</span>
-                          )}
                           {booking.costEstimate === 'yes' && (
                             <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-600 border border-amber-200">Cost Estimate</span>
                           )}
@@ -634,7 +719,6 @@ ${booking.trackingId || 'N/A'}
                         <div className="space-y-0.5">
                           {booking.issueCategory && <p><span className="text-gray-400">Selected Issue:</span> {booking.issueCategory}</p>}
                           <p><span className="text-gray-400">Cost Estimate:</span> {booking.costEstimate === 'yes' ? 'Yes' : 'No'}</p>
-                          <p><span className="text-gray-400">Urgent Repair:</span> {booking.urgent ? 'Yes' : 'No'}</p>
                         </div>
                       </div>
 
@@ -757,7 +841,26 @@ ${booking.trackingId || 'N/A'}
                           <X className="w-4 h-4" /> Discard
                         </button>
                       )}
+                      <button onClick={() => setDeleteId(booking.id)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all">
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
                     </div>
+
+                    {/* Customer Rating */}
+                    {booking.status === 'completed' && !booking.customerRating && (
+                      <div className="border-t border-gray-100 pt-3 mt-3">
+                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Customer Satisfaction</p>
+                        <div className="flex items-center gap-1">
+                          {[1,2,3,4,5].map(star => (
+                            <button key={star} onClick={() => rateBooking(booking.id, star)}
+                              className={`text-lg transition-all hover:scale-110 ${(draftChanges[booking.id]?.customerRating ?? 0) >= star ? 'text-amber-400' : 'text-gray-300'}`}>
+                              ★
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {booking.review && !booking.review.approved && (
                       <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-200">
@@ -783,6 +886,24 @@ ${booking.trackingId || 'N/A'}
             );
           })}
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {deleteId && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setDeleteId(null)}>
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={e => e.stopPropagation()}>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Are you sure you want to delete this booking?</h3>
+              <p className="text-gray-500 text-sm mb-6">This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteId(null)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium transition-all">Cancel</button>
+                <button onClick={() => confirmDelete()} disabled={deleting}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 text-sm font-medium transition-all disabled:opacity-50">
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -61,7 +61,7 @@ export default function BookingPage() {
     fullName: '', phone: '', email: '', whatsappNumber: '',
     deviceType: 'mobile', brand: '', model: '', problem: '',
     issueCategory: '', additionalNotes: '', customerPhoto: '',
-    urgent: false, costEstimate: 'no',
+    costEstimate: 'no',
     visitDate: '', visitTimeSlot: '',
     pickupAddress: '', pickupLandmark: '', pincode: '',
     pickupLatitude: '', pickupLongitude: '',
@@ -73,6 +73,9 @@ export default function BookingPage() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [modelError, setModelError] = useState('');
+  const isValidPhone = (phone: string) => /^[6-9]\d{9}$/.test(phone);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -108,13 +111,19 @@ export default function BookingPage() {
           return !!form.visitDate && !!form.visitTimeSlot;
         }
         return false;
-      case 3: return !!form.fullName && !!form.phone;
+      case 3: return !!form.fullName && !!form.phone && isValidPhone(form.phone);
       case 4: return true;
       default: return false;
     }
   };
 
-  const nextStep = () => { if (canProceed()) setStep(s => s + 1); };
+  const nextStep = () => {
+    if (step === 1) {
+      if (!form.model) { setModelError('Please enter your device model'); return; }
+      else setModelError('');
+    }
+    if (canProceed()) setStep(s => s + 1);
+  };
   const prevStep = () => { if (step > 0) setStep(s => s - 1); };
 
   const handleSubmit = async () => {
@@ -129,7 +138,7 @@ export default function BookingPage() {
         deviceType: form.deviceType, brand: form.brand, model: form.model, problem: problemText,
         issueCategory: form.issueCategory,
         additionalNotes: form.additionalNotes || undefined,
-        urgent: form.urgent, costEstimate: form.costEstimate,
+        costEstimate: form.costEstimate,
         serviceType: form.serviceType,
         customerPhoto: form.customerPhoto || undefined,
       };
@@ -305,8 +314,9 @@ export default function BookingPage() {
         </div>
         <div>
           <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">Model *</label>
-          <input type="text" required value={form.model} onChange={(e) => update('model', e.target.value)} placeholder="e.g. iPhone 15 Pro"
+          <input type="text" required value={form.model} onChange={(e) => { update('model', e.target.value); setModelError(''); }} placeholder="e.g. iPhone 15 Pro"
             className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
+          {modelError && <p className="text-red-500 text-xs mt-1.5">{modelError}</p>}
         </div>
       </div>
     </div>
@@ -343,16 +353,7 @@ export default function BookingPage() {
         <div className="border-t border-gray-200 pt-4">
           <h3 className="text-gray-900 font-semibold text-base mb-3">Extras</h3>
           <div className="space-y-4">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" checked={form.urgent} onChange={(e) => update('urgent', e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-200 cursor-pointer" />
-              <div>
-                <span className="text-gray-800 text-sm font-medium group-hover:text-gray-900">Urgent Repair Required</span>
-                <p className="text-gray-400 text-xs">Priority handling — we&apos;ll try to complete your repair faster</p>
-              </div>
-            </label>
-
-            <div className="border-t border-gray-100 pt-3">
+            <div>
               <p className="text-gray-800 text-sm font-medium mb-2">Need Cost Estimate?</p>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -489,8 +490,14 @@ export default function BookingPage() {
         </div>
         <div>
           <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">Phone *</label>
-          <input type="tel" required value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="9876543210"
+          <input type="tel" required value={form.phone} onChange={(e) => {
+              const val = e.target.value;
+              update('phone', val);
+              if (val && !isValidPhone(val)) setPhoneError('Please enter a valid 10-digit Indian mobile number');
+              else setPhoneError('');
+            }} placeholder="9876543210"
             className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
+          {phoneError && <p className="text-red-500 text-xs mt-1.5">{phoneError}</p>}
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -34,9 +34,9 @@ model Booking {
   problem         String
   additionalNotes String?
   issueCategory   String?
-  urgent          Boolean   @default(false)
   costEstimate    String?   @default("no")
   costEstimateAmount String?
+  customerRating  Int?
   serviceType     String    @default("self_visit")
   visitDate       String?
   visitTimeSlot   String?

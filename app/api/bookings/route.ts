@@ -4,9 +4,28 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { fullName, phone, email, deviceType, brand, model: deviceModel, problem, issueCategory, additionalNotes, urgent, costEstimate, serviceType, visitDate, visitTimeSlot, pickupAddress, pickupLandmark, pincode, pickupLatitude, pickupLongitude, pickupDate, pickupTimeSlot, customerPhoto } = body;
+    const { fullName, phone, email, deviceType, brand, model: deviceModel, problem, issueCategory, additionalNotes, costEstimate, serviceType, visitDate, visitTimeSlot, pickupAddress, pickupLandmark, pincode, pickupLatitude, pickupLongitude, pickupDate, pickupTimeSlot, customerPhoto } = body;
+
     if (!fullName || !phone || !deviceType || !brand || !deviceModel || !problem || !serviceType) {
       return NextResponse.json({ error: 'All required fields must be filled' }, { status: 400 });
+    }
+
+    if (!/^[6-9]\d{9}$/.test(phone.replace(/\D/g, ''))) {
+      return NextResponse.json({ error: 'Please enter a valid Indian mobile number.' }, { status: 400 });
+    }
+
+    // Duplicate booking protection: same phone + model + issue within 5 minutes
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const duplicate = await prisma.booking.findFirst({
+      where: {
+        phone,
+        model: deviceModel,
+        issueCategory: issueCategory || undefined,
+        createdAt: { gte: fiveMinAgo },
+      },
+    });
+    if (duplicate) {
+      return NextResponse.json({ error: 'A similar booking already exists.' }, { status: 409 });
     }
 
     const year = new Date().getFullYear();
@@ -16,7 +35,7 @@ export async function POST(req: Request) {
     const booking = await prisma.booking.create({
       data: {
         fullName, phone, email, deviceType, brand, model: deviceModel, problem, issueCategory: issueCategory || null, trackingId,
-        urgent: urgent || false, costEstimate: costEstimate || 'no', additionalNotes: additionalNotes || null,
+        costEstimate: costEstimate || 'no', additionalNotes: additionalNotes || null,
         serviceType, customerPhoto: customerPhoto || null,
         ...(serviceType === 'self_visit' ? { visitDate, visitTimeSlot } : {}),
         ...(serviceType === 'pickup' ? { pickupAddress, pickupLandmark, pincode, pickupLatitude: pickupLatitude || null, pickupLongitude: pickupLongitude || null, pickupDate, pickupTimeSlot } : {}),
