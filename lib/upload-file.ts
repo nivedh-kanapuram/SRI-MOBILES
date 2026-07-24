@@ -20,8 +20,15 @@ export async function uploadFile(
     return { url: `/uploads/${subDir}/${fileName}` };
   }
 
-  const { url } = await put(`uploads/${subDir}/${fileName}`, file, {
-    access: 'public',
-  });
-  return { url };
+  const blobPath = `uploads/${subDir}/${fileName}`;
+  console.log('[uploadFile] Calling @vercel/blob put()', { blobPath, fileType: file.type, fileSize: file.size });
+
+  try {
+    const result = await put(blobPath, file, { access: 'public' });
+    console.log('[uploadFile] Success', { url: result.url });
+    return { url: result.url };
+  } catch (err) {
+    console.error('[uploadFile] @vercel/blob put() failed:', err);
+    throw err;
+  }
 }
