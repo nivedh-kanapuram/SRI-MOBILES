@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { uploadFile } from '@/lib/upload-file';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -30,15 +29,11 @@ export async function POST(req: Request) {
 
   const ext = file.name.split('.').pop() || 'jpg';
   const fileName = `${type}.${ext}`;
-  const dir = path.join(process.cwd(), 'public', 'uploads', 'repairs', bookingId);
 
-  await mkdir(dir, { recursive: true });
-
-  const bytes = await file.arrayBuffer();
-  const filePath = path.join(dir, fileName);
-  await writeFile(filePath, new Uint8Array(bytes));
-
-  const url = `/uploads/repairs/${bookingId}/${fileName}`;
-
-  return NextResponse.json({ url });
+  try {
+    const { url } = await uploadFile(fileName, file, `repairs/${bookingId}`);
+    return NextResponse.json({ url });
+  } catch {
+    return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
+  }
 }

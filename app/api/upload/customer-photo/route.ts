@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { uploadFile } from '@/lib/upload-file';
 import { randomUUID } from 'crypto';
 
 export async function POST(req: Request) {
@@ -18,15 +17,11 @@ export async function POST(req: Request) {
 
   const ext = file.name.split('.').pop() || 'jpg';
   const fileName = `${randomUUID()}.${ext}`;
-  const dir = path.join(process.cwd(), 'public', 'uploads', 'customer');
 
-  await mkdir(dir, { recursive: true });
-
-  const bytes = await file.arrayBuffer();
-  const filePath = path.join(dir, fileName);
-  await writeFile(filePath, new Uint8Array(bytes));
-
-  const url = `/uploads/customer/${fileName}`;
-
-  return NextResponse.json({ url });
+  try {
+    const { url } = await uploadFile(fileName, file, 'customer');
+    return NextResponse.json({ url });
+  } catch {
+    return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
+  }
 }
