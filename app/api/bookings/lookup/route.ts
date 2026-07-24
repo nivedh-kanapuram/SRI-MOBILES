@@ -43,10 +43,18 @@ export async function POST(req: Request) {
     }
 
     if (!booking) {
-      return NextResponse.json({
-        error: 'Booking not found. If you believe this is a mistake, please contact Sri Mobiles.',
-        phone: '9948299426',
-      }, { status: 404 });
+      if (bookingId) {
+        const deleted = await prisma.deletedBooking.findFirst({ where: { trackingId: bookingId } });
+        if (deleted) {
+          return NextResponse.json({ deleted: true, phone: '9948299426' }, { status: 404 });
+        }
+      } else {
+        const deleted = await prisma.deletedBooking.findFirst({ where: { phone } });
+        if (deleted) {
+          return NextResponse.json({ deleted: true, phone: '9948299426' }, { status: 404 });
+        }
+      }
+      return NextResponse.json({ notFound: true }, { status: 404 });
     }
 
     return NextResponse.json(booking);

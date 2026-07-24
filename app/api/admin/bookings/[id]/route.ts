@@ -39,6 +39,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   }
   const { id } = await params;
 
+  const booking = await prisma.booking.findUnique({ where: { id }, select: { trackingId: true, phone: true } });
+  if (booking?.trackingId) {
+    await prisma.deletedBooking.create({ data: { trackingId: booking.trackingId, phone: booking.phone } });
+  }
   await prisma.review.deleteMany({ where: { bookingId: id } });
   await prisma.booking.delete({ where: { id } });
 

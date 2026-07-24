@@ -56,6 +56,13 @@ model Booking {
   updatedAt       DateTime  @updatedAt
 }
 
+model DeletedBooking {
+  id         String   @id @default(uuid())
+  trackingId String
+  phone      String
+  deletedAt  DateTime @default(now())
+}
+
 model Review {
   id        String   @id @default(uuid())
   userId    String
