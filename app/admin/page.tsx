@@ -27,13 +27,12 @@ interface AdminBooking {
   user: { name: string; email: string }; review: AdminReview | null;
 }
 
-interface Stats { total: number; pending: number; inProgress: number; completed: number; avgRating: number; }
+interface Stats { total: number; pending: number; inProgress: number; completed: number; avgRating: number; totalReviews: number; }
 
 interface DraftChanges {
   status?: string;
   beforeImage?: string;
   afterImage?: string;
-  customerRating?: number;
 }
 
 const statuses = [
@@ -157,23 +156,6 @@ export default function AdminPage() {
       body: JSON.stringify({ bookingId, approved }),
     });
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, review: b.review ? { ...b.review, approved } : null } : b));
-  };
-
-  const rateBooking = async (id: string, rating: number) => {
-    setDraftChanges(prev => ({
-      ...prev,
-      [id]: { ...prev[id], customerRating: rating },
-    }));
-    try {
-      await fetch(`/api/admin/bookings/${id}`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerRating: rating }),
-      });
-      setBookings(prev => prev.map(b => b.id === id ? { ...b, customerRating: rating } : b));
-      setToast({ message: 'Rating saved successfully', type: 'success' });
-    } catch {
-      setToast({ message: 'Failed to save rating', type: 'error' });
-    }
   };
 
   const confirmDelete = async () => {
@@ -305,13 +287,14 @@ export default function AdminPage() {
         </div>
 
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 sm:gap-4 mb-6 sm:mb-8">
             {[
               { label: 'Total Bookings', value: stats.total, icon: <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-sky-500' },
               { label: 'Pending', value: stats.pending, icon: <Clock className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-yellow-500' },
               { label: 'In Progress', value: stats.inProgress, icon: <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-blue-500' },
               { label: 'Completed', value: stats.completed, icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-green-500' },
               { label: 'Avg Rating', value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—', icon: <Star className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-amber-500' },
+              { label: 'Total Reviews', value: stats.totalReviews, icon: <Star className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-purple-500' },
             ].map((s) => (
               <div key={s.label} className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-2.5 sm:p-5 shadow-card">
                 <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl ${s.color} flex items-center justify-center text-white mb-1.5 sm:mb-3 shadow-sm`}>{s.icon}</div>
@@ -644,21 +627,6 @@ export default function AdminPage() {
                     </div>
                   )}
 
-                  {/* Customer Rating */}
-                  {booking.status === 'completed' && !booking.customerRating && (
-                    <div className="border-t border-gray-100 pt-3 mt-3">
-                      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Customer Satisfaction</p>
-                      <div className="flex items-center gap-1">
-                        {[1,2,3,4,5].map(star => (
-                          <button key={star} onClick={() => rateBooking(booking.id, star)}
-                            className={`text-lg transition-all hover:scale-110 ${(draftChanges[booking.id]?.customerRating ?? 0) >= star ? 'text-amber-400' : 'text-gray-300'}`}>
-                            ★
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Review Approval */}
                   {booking.review && !booking.review.approved && (
                     <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-2">
@@ -862,21 +830,6 @@ export default function AdminPage() {
                         <Trash2 className="w-3.5 h-3.5" /> Delete
                       </button>
                     </div>
-
-                    {/* Customer Rating */}
-                    {booking.status === 'completed' && !booking.customerRating && (
-                      <div className="border-t border-gray-100 pt-3 mt-3">
-                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Customer Satisfaction</p>
-                        <div className="flex items-center gap-1">
-                          {[1,2,3,4,5].map(star => (
-                            <button key={star} onClick={() => rateBooking(booking.id, star)}
-                              className={`text-lg transition-all hover:scale-110 ${(draftChanges[booking.id]?.customerRating ?? 0) >= star ? 'text-amber-400' : 'text-gray-300'}`}>
-                              ★
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
 
                     {booking.review && !booking.review.approved && (
                       <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-200">

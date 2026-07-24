@@ -20,6 +20,7 @@ export async function POST(req: Request) {
           visitDate: true, visitTimeSlot: true,
           pickupAddress: true, pickupLandmark: true, pincode: true, invoiceUrl: true,
           pickupDate: true, pickupTimeSlot: true,
+          customerRating: true,
           createdAt: true, updatedAt: true,
         },
       });
@@ -35,6 +36,7 @@ export async function POST(req: Request) {
           visitDate: true, visitTimeSlot: true,
           pickupAddress: true, pickupLandmark: true, pincode: true, invoiceUrl: true,
           pickupDate: true, pickupTimeSlot: true,
+          customerRating: true,
           createdAt: true, updatedAt: true,
         },
       });

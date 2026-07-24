@@ -15,11 +15,13 @@ export async function GET() {
   const cancelled = await prisma.booking.count({ where: { status: 'cancelled' } });
   const totalUsers = await prisma.user.count();
 
-  const ratingAgg = await prisma.booking.aggregate({
+  const ratingStats = await prisma.booking.aggregate({
     _avg: { customerRating: true },
+    _count: { customerRating: true },
     where: { customerRating: { not: null } },
   });
-  const avgRating = ratingAgg._avg.customerRating ?? 0;
+  const avgRating = ratingStats._avg.customerRating ?? 0;
+  const totalReviews = ratingStats._count.customerRating;
 
-  return NextResponse.json({ total, pending, inProgress, completed, cancelled, totalUsers, avgRating: Math.round(avgRating * 10) / 10 });
+  return NextResponse.json({ total, pending, inProgress, completed, cancelled, totalUsers, avgRating: Math.round(avgRating * 10) / 10, totalReviews });
 }

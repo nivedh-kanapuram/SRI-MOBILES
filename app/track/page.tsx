@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
-import { Search, Clock, CheckCircle, AlertCircle, XCircle, Loader2, Smartphone, Laptop, Phone, Hash, Copy } from 'lucide-react';
+import { Search, Clock, CheckCircle, AlertCircle, XCircle, Loader2, Smartphone, Laptop, Phone, Hash, Copy, Star } from 'lucide-react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import CopyButton from '@/components/ui/CopyButton';
 import ProblemDescription from '@/components/ui/ProblemDescription';
@@ -31,6 +31,7 @@ interface TrackBooking {
   visitDate: string | null; visitTimeSlot: string | null;
   pickupAddress: string | null; pickupLandmark: string | null; pincode: string | null; invoiceUrl: string | null;
   pickupDate: string | null; pickupTimeSlot: string | null;
+  customerRating: number | null;
   createdAt: string; updatedAt: string;
 }
 
@@ -46,6 +47,9 @@ export default function TrackPage() {
   const [searched, setSearched] = useState(false);
   const [toast, setToast] = useState('');
   const [deletedBooking, setDeletedBooking] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [submittingRating, setSubmittingRating] = useState(false);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -94,6 +98,26 @@ export default function TrackPage() {
     e.preventDefault();
     if (!searchValue.trim()) return;
     doSearch(searchMode, searchValue.trim());
+  };
+
+  const submitRating = async () => {
+    if (!booking || selectedRating === 0) return;
+    setSubmittingRating(true);
+    try {
+      const res = await fetch('/api/bookings/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trackingId: booking.trackingId, rating: selectedRating }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed to submit rating'); }
+      setBooking({ ...booking, customerRating: selectedRating });
+      setRatingSubmitted(true);
+      setToast('Thank you for your feedback!');
+    } catch (err: unknown) {
+      setToast(err instanceof Error ? err.message : 'Failed to submit rating');
+    } finally {
+      setSubmittingRating(false);
+    }
   };
 
   const oldStatusMap: Record<string, number> = {
@@ -269,6 +293,37 @@ export default function TrackPage() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                     📄 Download Invoice
                   </a>
+                </div>
+              )}
+
+              {booking.status === 'completed' && (
+                <div className="border-t border-gray-100 pt-5 mt-5">
+                  <p className="text-gray-400 text-[13px] uppercase tracking-wider mb-3">Rate Your Experience</p>
+                  {booking.customerRating !== null || ratingSubmitted ? (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                      <p className="text-gray-800 font-medium mb-2">Thank you for your valuable feedback.</p>
+                      <div className="flex items-center justify-center gap-1">
+                        {[1,2,3,4,5].map(star => (
+                          <Star key={star} className={`w-5 h-5 ${star <= (booking.customerRating ?? selectedRating) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`} />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center gap-1 mb-3">
+                        {[1,2,3,4,5].map(star => (
+                          <button key={star} onClick={() => setSelectedRating(star)}
+                            className={`p-1 transition-all hover:scale-110 ${selectedRating >= star ? 'text-amber-400' : 'text-gray-300'}`}>
+                            <Star className={`w-6 h-6 ${selectedRating >= star ? 'fill-amber-400' : ''}`} />
+                          </button>
+                        ))}
+                      </div>
+                      <button onClick={submitRating} disabled={selectedRating === 0 || submittingRating}
+                        className="px-5 py-2 rounded-xl bg-amber-500 text-white font-medium text-sm hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                        {submittingRating ? <Loader2 className="w-4 h-4 animate-spin inline" /> : 'Submit'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
