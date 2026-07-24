@@ -286,7 +286,7 @@ export default function TrackPage() {
                 </div>
               )}
 
-              {booking.status === 'ready_for_pickup' && booking.invoiceUrl && (
+              {booking.invoiceUrl && (
                 <div className="mb-6">
                   <a href={booking.invoiceUrl} target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 text-sm font-medium transition-all">

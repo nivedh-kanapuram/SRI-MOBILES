@@ -532,13 +532,20 @@ export default function AdminPage() {
 
                   {/* Status Management */}
                   <div className="flex items-center justify-between gap-2">
-                    <div className="relative flex-1">
-                      <select value={booking.status} onChange={(e) => updateStatus(booking.id, e.target.value)}
-                        className={`appearance-none w-full pl-2.5 pr-7 py-2 rounded-lg text-xs font-medium border cursor-pointer focus:outline-none ${sc.color} border-current/30`}>
-                        {statuses.map(s => <option key={s.value} value={s.value} className="bg-white">{s.label}</option>)}
-                      </select>
-                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none opacity-50" />
-                    </div>
+                    {booking.customerRating !== null ? (
+                      <div className="flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg bg-gray-100 border border-gray-200">
+                        <span className="text-xs">🔒</span>
+                        <span className="text-xs text-gray-500 font-medium">Status Locked — Customer has already submitted a review.</span>
+                      </div>
+                    ) : (
+                      <div className="relative flex-1">
+                        <select value={booking.status} onChange={(e) => updateStatus(booking.id, e.target.value)}
+                          className={`appearance-none w-full pl-2.5 pr-7 py-2 rounded-lg text-xs font-medium border cursor-pointer focus:outline-none ${sc.color} border-current/30`}>
+                          {statuses.map(s => <option key={s.value} value={s.value} className="bg-white">{s.label}</option>)}
+                        </select>
+                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none opacity-50" />
+                      </div>
+                    )}
                     <span className="text-[11px] text-gray-400 flex-shrink-0">{new Date(booking.createdAt).toLocaleDateString('en-IN')}</span>
                   </div>
 
@@ -678,13 +685,20 @@ export default function AdminPage() {
                         >
                           <MessageCircle className="w-4 h-4" />
                         </a>
-                        <div className="relative">
-                          <select value={booking.status} onChange={(e) => updateStatus(booking.id, e.target.value)}
-                            className={`appearance-none pl-3 pr-8 py-2.5 rounded-xl text-sm font-medium border cursor-pointer focus:outline-none ${sc.color} border-current/30 w-full sm:w-auto`}>
-                            {statuses.map(s => <option key={s.value} value={s.value} className="bg-white">{s.label}</option>)}
-                          </select>
-                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none opacity-50" />
-                        </div>
+                        {booking.customerRating !== null ? (
+                          <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-100 border border-gray-200">
+                            <span className="text-sm">🔒</span>
+                            <span className="text-sm text-gray-500 font-medium">Status Locked — Customer has already submitted a review.</span>
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <select value={booking.status} onChange={(e) => updateStatus(booking.id, e.target.value)}
+                              className={`appearance-none pl-3 pr-8 py-2.5 rounded-xl text-sm font-medium border cursor-pointer focus:outline-none ${sc.color} border-current/30 w-full sm:w-auto`}>
+                              {statuses.map(s => <option key={s.value} value={s.value} className="bg-white">{s.label}</option>)}
+                            </select>
+                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none opacity-50" />
+                          </div>
+                        )}
                       </div>
                     </div>
 

@@ -11,6 +11,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const { status, adminNotes } = await req.json();
 
+  if (status) {
+    const existing = await prisma.booking.findUnique({
+      where: { id },
+      select: { customerRating: true },
+    });
+    if (existing?.customerRating !== null) {
+      return NextResponse.json({ error: 'Status locked: customer has already submitted a review' }, { status: 403 });
+    }
+  }
+
   const booking = await prisma.booking.update({
     where: { id },
     data: {
