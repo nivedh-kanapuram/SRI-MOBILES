@@ -21,10 +21,15 @@ export async function uploadFile(
   }
 
   const blobPath = `uploads/${subDir}/${fileName}`;
-  console.log('[uploadFile] Calling @vercel/blob put()', { blobPath, fileType: file.type, fileSize: file.size });
+  const contentType = file.type || 'application/octet-stream';
+  console.log('[uploadFile] Calling @vercel/blob put()', { blobPath, contentType, fileSize: file.size });
 
   try {
-    const result = await put(blobPath, file, { access: 'public' });
+    const body = await file.arrayBuffer();
+    const result = await put(blobPath, body, {
+      access: 'public',
+      contentType,
+    });
     console.log('[uploadFile] Success', { url: result.url });
     return { url: result.url };
   } catch (err) {
