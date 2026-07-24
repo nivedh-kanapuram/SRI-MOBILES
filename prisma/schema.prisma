@@ -34,9 +34,7 @@ model Booking {
   problem         String
   additionalNotes String?
   issueCategory   String?
-  costEstimate    String?   @default("no")
-  costEstimateAmount String?
-  invoiceUrl     String?
+  invoiceUrl      String?
   customerRating  Int?
   serviceType     String    @default("self_visit")
   visitDate       String?

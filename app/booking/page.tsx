@@ -61,7 +61,6 @@ export default function BookingPage() {
     fullName: '', phone: '', email: '', whatsappNumber: '',
     deviceType: 'mobile', brand: '', model: '', problem: '',
     issueCategory: '', additionalNotes: '', customerPhoto: '',
-    costEstimate: 'no',
     visitDate: '', visitTimeSlot: '',
     pickupAddress: '', pickupLandmark: '', pincode: '',
     pickupLatitude: '', pickupLongitude: '',
@@ -138,7 +137,6 @@ export default function BookingPage() {
         deviceType: form.deviceType, brand: form.brand, model: form.model, problem: problemText,
         issueCategory: form.issueCategory,
         additionalNotes: form.additionalNotes || undefined,
-        costEstimate: form.costEstimate,
         serviceType: form.serviceType,
         customerPhoto: form.customerPhoto || undefined,
       };
@@ -348,27 +346,6 @@ export default function BookingPage() {
           <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">Additional Notes (optional)</label>
           <textarea rows={2} value={form.additionalNotes} onChange={(e) => update('additionalNotes', e.target.value)} placeholder="Any extra details we should know..."
             className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all resize-none" />
-        </div>
-
-        <div className="border-t border-gray-200 pt-4">
-          <h3 className="text-gray-900 font-semibold text-base mb-3">Extras</h3>
-          <div className="space-y-4">
-            <div>
-              <p className="text-gray-800 text-sm font-medium mb-2">Need Cost Estimate?</p>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="costEstimate" value="yes" checked={form.costEstimate === 'yes'} onChange={(e) => update('costEstimate', e.target.value)}
-                    className="w-4 h-4 text-sky-500 border-gray-300 focus:ring-sky-200 cursor-pointer" />
-                  <span className="text-gray-700 text-sm">Yes</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="costEstimate" value="no" checked={form.costEstimate === 'no'} onChange={(e) => update('costEstimate', e.target.value)}
-                    className="w-4 h-4 text-sky-500 border-gray-300 focus:ring-sky-200 cursor-pointer" />
-                  <span className="text-gray-700 text-sm">No</span>
-                </label>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="border-t border-gray-200 pt-4">

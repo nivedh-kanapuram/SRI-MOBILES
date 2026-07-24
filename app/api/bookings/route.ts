@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { fullName, phone, email, deviceType, brand, model: deviceModel, problem, issueCategory, additionalNotes, costEstimate, serviceType, visitDate, visitTimeSlot, pickupAddress, pickupLandmark, pincode, pickupLatitude, pickupLongitude, pickupDate, pickupTimeSlot, customerPhoto } = body;
+    const { fullName, phone, email, deviceType, brand, model: deviceModel, problem, issueCategory, additionalNotes, serviceType, visitDate, visitTimeSlot, pickupAddress, pickupLandmark, pincode, pickupLatitude, pickupLongitude, pickupDate, pickupTimeSlot, customerPhoto } = body;
 
     if (!fullName || !phone || !deviceType || !brand || !deviceModel || !problem || !serviceType) {
       return NextResponse.json({ error: 'All required fields must be filled' }, { status: 400 });
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const booking = await prisma.booking.create({
       data: {
         fullName, phone, email, deviceType, brand, model: deviceModel, problem, issueCategory: issueCategory || null, trackingId,
-        costEstimate: costEstimate || 'no', additionalNotes: additionalNotes || null,
+        additionalNotes: additionalNotes || null,
         serviceType, customerPhoto: customerPhoto || null,
         ...(serviceType === 'self_visit' ? { visitDate, visitTimeSlot } : {}),
         ...(serviceType === 'pickup' ? { pickupAddress, pickupLandmark, pincode, pickupLatitude: pickupLatitude || null, pickupLongitude: pickupLongitude || null, pickupDate, pickupTimeSlot } : {}),

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, Copy, Search, RotateCcw, Smartphone, Camera } from 'lucide-react';
+import { Check, Copy, Search, RotateCcw, Smartphone, Camera, Home } from 'lucide-react';
 import CopyButton from '@/components/ui/CopyButton';
 
 interface BookingSuccessProps {
@@ -131,6 +131,15 @@ export default function BookingSuccess({ trackingId, serviceType, onReset }: Boo
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-sky-500 text-white font-semibold text-[15px] hover:bg-sky-600 transition-all shadow-sm active:scale-[0.97]"
           >
             <Search className="w-4 h-4" /> Track Repair Now
+          </button>
+        </div>
+
+        <div className={`transition-all duration-700 delay-600 ease-out ${visible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+          <button
+            onClick={() => router.push('/')}
+            className="mt-4 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 text-sm font-medium transition-all w-full sm:w-auto"
+          >
+            <Home className="w-4 h-4" /> Back to Home
           </button>
         </div>
 

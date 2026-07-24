@@ -9,14 +9,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   const { id } = await params;
-  const { status, adminNotes, costEstimateAmount, customerRating } = await req.json();
+  const { status, adminNotes, customerRating } = await req.json();
 
   const booking = await prisma.booking.update({
     where: { id },
     data: {
       ...(status && { status }),
       ...(adminNotes !== undefined && { adminNotes }),
-      ...(costEstimateAmount !== undefined && { costEstimateAmount }),
       ...(customerRating !== undefined && { customerRating }),
     },
   });

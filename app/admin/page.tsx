@@ -22,7 +22,6 @@ interface AdminBooking {
   pickupAddress: string | null; pickupLandmark: string | null;
   pickupLatitude: number | null; pickupLongitude: number | null;
   pickupDate: string | null; pickupTimeSlot: string | null;
-  costEstimate: string | null; costEstimateAmount: string | null;
   customerRating: number | null;
   invoiceUrl: string | null;
   user: { name: string; email: string }; review: AdminReview | null;
@@ -34,7 +33,6 @@ interface DraftChanges {
   status?: string;
   beforeImage?: string;
   afterImage?: string;
-  costEstimateAmount?: string;
   customerRating?: number;
 }
 
@@ -122,7 +120,6 @@ export default function AdminPage() {
 
       const patchBody: Record<string, unknown> = {};
       if (draft.status) patchBody.status = draft.status;
-      if (draft.costEstimateAmount !== undefined) patchBody.costEstimateAmount = draft.costEstimateAmount;
 
       if (Object.keys(patchBody).length > 0) {
         promises.push(
@@ -219,28 +216,6 @@ export default function AdminPage() {
   const getWhatsAppLink = (booking: AdminBooking) => {
     const sc = statuses.find(s => s.value === booking.status) || statuses[0];
     const text = `Hi ${booking.fullName},\n\nYour device (${booking.brand} ${booking.model}) repair status has been updated to: ${sc.label}\n\nTracking ID: ${booking.trackingId || 'N/A'}\n\nSri Mobiles\n9948299426\nDilsukh Nagar, Chaitanyapuri, Hyderabad`;
-    return `https://wa.me/${booking.phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
-  };
-
-  const getEstimateLink = (booking: AdminBooking, amount: string) => {
-    const text = `Hello ${booking.fullName},
-
-Thank you for choosing Sri Mobiles.
-
-Based on the issue selected:
-
-Issue:
-${booking.issueCategory || 'N/A'}
-
-Estimated Repair Cost:
-${amount}
-
-Final inspection may slightly change the cost.
-
-Booking ID:
-${booking.trackingId || 'N/A'}
-
-- Sri Mobiles`;
     return `https://wa.me/${booking.phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
   };
 
@@ -475,9 +450,6 @@ ${booking.trackingId || 'N/A'}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {booking.costEstimate === 'yes' && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-600 border border-amber-200">Cost?</span>
-                      )}
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${booking.serviceType === 'pickup' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-green-50 text-green-600 border border-green-200'}`}>
                         {booking.serviceType === 'pickup' ? 'Pickup' : 'Visit'}
                       </span>
@@ -510,25 +482,6 @@ ${booking.trackingId || 'N/A'}
                     <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Issue Details</p>
                     <div className="text-[13px] text-gray-600 space-y-0.5">
                       {booking.issueCategory && <p><span className="text-gray-400">Selected Issue:</span> {booking.issueCategory}</p>}
-                      <p><span className="text-gray-400">Cost Estimate Requested:</span> {booking.costEstimate === 'yes' ? 'Yes' : 'No'}</p>
-                    </div>
-                  </div>
-
-                  {/* Estimate Input */}
-                  <div className="border-t border-gray-100 pt-2">
-                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Cost Estimate</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 flex items-center bg-white border border-gray-200 rounded-lg focus-within:border-sky-400 focus-within:ring-1 focus-within:ring-sky-200 transition-all">
-                        <span className="pl-3 text-gray-500 text-[13px] font-medium">₹</span>
-                        <input type="text" placeholder="800 - 1200" value={((draftChanges[booking.id]?.costEstimateAmount ?? booking.costEstimateAmount) ?? '').replace(/^₹/, '')} onChange={(e) => setDraft(booking.id, { costEstimateAmount: e.target.value ? `₹${e.target.value}` : '' })}
-                          className="flex-1 px-2 py-2 bg-transparent border-none text-[13px] text-gray-900 placeholder:text-gray-400 focus:outline-none transition-all" />
-                      </div>
-                      {(draftChanges[booking.id]?.costEstimateAmount ?? booking.costEstimateAmount) && (
-                        <a href={getEstimateLink(booking, draftChanges[booking.id]?.costEstimateAmount ?? booking.costEstimateAmount!)} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1 px-3 py-2 rounded-lg bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 border border-[#25D366]/20 text-xs font-medium transition-all whitespace-nowrap">
-                          💬 Send Estimate
-                        </a>
-                      )}
                     </div>
                   </div>
 
@@ -733,9 +686,6 @@ ${booking.trackingId || 'N/A'}
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-gray-900 font-semibold text-[15px] sm:text-base truncate">{booking.fullName}</h3>
                           <span className="text-gray-400 text-[13px] sm:text-[15px] flex-shrink-0">{booking.phone}</span>
-                          {booking.costEstimate === 'yes' && (
-                            <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-600 border border-amber-200">Cost Estimate</span>
-                          )}
                           <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${booking.serviceType === 'pickup' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-green-50 text-green-600 border border-green-200'}`}>
                             {booking.serviceType === 'pickup' ? 'Doorstep Pickup' : 'Self Visit'}
                           </span>
@@ -787,7 +737,6 @@ ${booking.trackingId || 'N/A'}
                         <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Issue Details</p>
                         <div className="space-y-0.5">
                           {booking.issueCategory && <p><span className="text-gray-400">Selected Issue:</span> {booking.issueCategory}</p>}
-                          <p><span className="text-gray-400">Cost Estimate:</span> {booking.costEstimate === 'yes' ? 'Yes' : 'No'}</p>
                         </div>
                       </div>
 
@@ -827,22 +776,6 @@ ${booking.trackingId || 'N/A'}
                           </div>
                         </div>
                       ) : null}
-                    </div>
-
-                    {/* Estimate Input */}
-                    <div className="flex items-center gap-2 bg-gray-50/50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider flex-shrink-0">Estimate:</span>
-                      <div className="flex-1 flex items-center bg-white border border-gray-200 rounded-lg focus-within:border-sky-400 focus-within:ring-1 focus-within:ring-sky-200 transition-all max-w-xs">
-                        <span className="pl-3 text-gray-500 text-sm font-medium">₹</span>
-                        <input type="text" placeholder="800 - 1200" value={((draftChanges[booking.id]?.costEstimateAmount ?? booking.costEstimateAmount) ?? '').replace(/^₹/, '')} onChange={(e) => setDraft(booking.id, { costEstimateAmount: e.target.value ? `₹${e.target.value}` : '' })}
-                          className="flex-1 px-2 py-1.5 bg-transparent border-none text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none transition-all" />
-                      </div>
-                      {(draftChanges[booking.id]?.costEstimateAmount ?? booking.costEstimateAmount) && (
-                        <a href={getEstimateLink(booking, draftChanges[booking.id]?.costEstimateAmount ?? booking.costEstimateAmount!)} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 border border-[#25D366]/20 text-xs font-medium transition-all whitespace-nowrap">
-                          💬 Send Estimate
-                        </a>
-                      )}
                     </div>
 
                     {/* Invoice Upload - Ready for Pickup */}
