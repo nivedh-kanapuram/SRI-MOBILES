@@ -29,7 +29,7 @@ interface TrackBooking {
   status: string; adminNotes: string | null; serviceType: string;
   beforeImage: string | null; afterImage: string | null;
   visitDate: string | null; visitTimeSlot: string | null;
-  pickupAddress: string | null; pickupLandmark: string | null; pincode: string | null;
+  pickupAddress: string | null; pickupLandmark: string | null; pincode: string | null; invoiceUrl: string | null;
   pickupDate: string | null; pickupTimeSlot: string | null;
   createdAt: string; updatedAt: string;
 }
@@ -45,6 +45,7 @@ export default function TrackPage() {
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
   const [toast, setToast] = useState('');
+  const [deletedBooking, setDeletedBooking] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -55,6 +56,7 @@ export default function TrackPage() {
   const doSearch = async (mode: SearchMode, value: string) => {
     setLoading(true);
     setError('');
+    setDeletedBooking(false);
     setBooking(null);
     try {
       const res = await fetch('/api/bookings/lookup', {
@@ -62,7 +64,7 @@ export default function TrackPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mode === 'bookingId' ? { bookingId: value } : { phone: value }),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Not found'); }
+      if (!res.ok) { const d = await res.json(); if (d.phone) setDeletedBooking(true); throw new Error(d.error || 'Not found'); }
       const data = await res.json();
       setBooking(data);
     } catch (err: unknown) {
@@ -125,11 +127,11 @@ export default function TrackPage() {
 
               <form onSubmit={handleTrack} className="max-w-md mx-auto mb-10">
                 <div className="flex border border-gray-200 rounded-xl overflow-hidden bg-white mb-3">
-                  <button type="button" onClick={() => { setSearchMode('bookingId'); setSearchValue(''); setBooking(null); setError(''); }}
+                  <button type="button" onClick={() => { setSearchMode('bookingId'); setSearchValue(''); setBooking(null); setError(''); setDeletedBooking(false); }}
                     className={`flex-1 py-3 text-sm font-medium transition-all ${searchMode === 'bookingId' ? 'bg-sky-50 text-sky-600 border-r border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>
                     <Hash className="w-3.5 h-3.5 inline mr-1" /> Booking ID
                   </button>
-                  <button type="button" onClick={() => { setSearchMode('phone'); setSearchValue(''); setBooking(null); setError(''); }}
+                  <button type="button" onClick={() => { setSearchMode('phone'); setSearchValue(''); setBooking(null); setError(''); setDeletedBooking(false); }}
                     className={`flex-1 py-3 text-sm font-medium transition-all ${searchMode === 'phone' ? 'bg-sky-50 text-sky-600' : 'text-gray-500 hover:text-gray-700'}`}>
                     <Phone className="w-3.5 h-3.5 inline mr-1" /> Phone Number
                   </button>
@@ -138,7 +140,7 @@ export default function TrackPage() {
                   <input
                     type={searchMode === 'phone' ? 'tel' : 'text'}
                     value={searchValue}
-                    onChange={(e) => setSearchValue(e.target.value)}
+                    onChange={(e) => { setSearchValue(e.target.value); setDeletedBooking(false); }}
                     placeholder={searchMode === 'bookingId' ? 'e.g. SM2026-0001' : 'e.g. 9876543210'}
                     className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all"
                   />
@@ -161,24 +163,33 @@ export default function TrackPage() {
             </div>
           )}
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-[15px] rounded-xl px-4 py-3 mb-6 text-center">{error}</div>
-          )}
+{deletedBooking && (
+  <div className="bg-red-50 border border-red-200 text-red-700 text-[15px] rounded-xl px-5 py-4 mb-6 text-center">
+    <p className="mb-3">This booking has been removed. Please call us for assistance.</p>
+    <a href="tel:9948299426" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-700 text-sm font-medium transition-all shadow-sm">
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+      Call Sri Mobiles
+    </a>
+  </div>
+)}
+{!deletedBooking && error && (
+  <div className="bg-red-50 border border-red-200 text-red-600 text-[15px] rounded-xl px-4 py-3 mb-6 text-center">{error}</div>
+)}
 
           {booking && sc && (
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-card"
             >
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-                <div>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 pb-4 border-b border-gray-100 gap-3 sm:gap-0">
+                <div className="min-w-0">
                   <p className="text-gray-400 text-[13px] uppercase tracking-wider">Booking ID</p>
-                  <p className="text-gray-900 font-bold text-lg flex items-center gap-2">
-                    {booking.trackingId}
-                    <CopyButton text={booking.trackingId || ''} className="text-gray-400 hover:text-sky-500" onCopy={() => setToast('Copied successfully')} />
+                  <p className="text-gray-900 font-bold text-lg flex items-center gap-2 flex-wrap">
+                    <span className="break-all">{booking.trackingId}</span>
+                    <CopyButton text={booking.trackingId || ''} className="text-gray-400 hover:text-sky-500 flex-shrink-0" onCopy={() => setToast('Copied successfully')} />
                   </p>
                 </div>
-                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-medium border ${sc.border} ${sc.color} ${sc.bg}`}>
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] sm:text-[15px] font-medium border ${sc.border} ${sc.color} ${sc.bg} w-fit whitespace-nowrap`}>
                   {sc.icon} {sc.label}
                 </div>
               </div>
@@ -248,6 +259,16 @@ export default function TrackPage() {
                       <img src={booking.afterImage} alt="After repair" className="w-full rounded-xl border border-gray-200" />
                     </div>
                   )}
+                </div>
+              )}
+
+              {booking.status === 'ready_for_pickup' && booking.invoiceUrl && (
+                <div className="mb-6">
+                  <a href={booking.invoiceUrl} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 text-sm font-medium transition-all">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                    📄 Download Invoice
+                  </a>
                 </div>
               )}
 

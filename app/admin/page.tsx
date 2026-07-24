@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Clock, AlertCircle, CheckCircle, XCircle, Users, Smartphone, ChevronDown, MessageCircle, ThumbsUp, ThumbsDown, MapPin, Tag, Calendar, Clock3, Store, Upload, X, Save, Copy, Phone, ChevronUp, Maximize2, Trash2, Download, Star } from 'lucide-react';
+import { Loader2, Clock, AlertCircle, CheckCircle, XCircle, Users, Smartphone, ChevronDown, MessageCircle, ThumbsUp, ThumbsDown, MapPin, Tag, Calendar, Clock3, Store, Upload, X, Save, Copy, Phone, ChevronUp, Maximize2, Trash2, Download, Star, FileText, Filter } from 'lucide-react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import ProblemDescription from '@/components/ui/ProblemDescription';
 
@@ -24,6 +24,7 @@ interface AdminBooking {
   pickupDate: string | null; pickupTimeSlot: string | null;
   costEstimate: string | null; costEstimateAmount: string | null;
   customerRating: number | null;
+  invoiceUrl: string | null;
   user: { name: string; email: string }; review: AdminReview | null;
 }
 
@@ -67,6 +68,7 @@ export default function AdminPage() {
   const [dateTo, setDateTo] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/auth/signin');
@@ -255,6 +257,12 @@ ${booking.trackingId || 'N/A'}
     if (brandFilter) {
       list = list.filter(b => b.brand === brandFilter);
     }
+    if (dateFrom) {
+      list = list.filter(b => new Date(b.createdAt) >= new Date(dateFrom));
+    }
+    if (dateTo) {
+      list = list.filter(b => new Date(b.createdAt) <= new Date(dateTo + 'T23:59:59.999Z'));
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter(b =>
@@ -265,7 +273,7 @@ ${booking.trackingId || 'N/A'}
       );
     }
     return list;
-  }, [bookings, serviceFilter, filter, brandFilter, searchQuery]);
+  }, [bookings, serviceFilter, filter, brandFilter, searchQuery, dateFrom, dateTo]);
 
   if (status === 'loading' || loading) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="w-8 h-8 text-sky-500 animate-spin" /></div>;
@@ -339,24 +347,23 @@ ${booking.trackingId || 'N/A'}
           </div>
         )}
 
-        {/* Date Filter + Search + Export */}
+        {/* Search + Filter + Export */}
         <div className="flex flex-col sm:flex-row gap-2 mb-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-              className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-sky-400" />
-            <span className="text-gray-400 text-sm">to</span>
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-              className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-sky-400" />
-          </div>
           <div className="relative flex-1">
-            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by Booking ID, Name, or Phone..."
+            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by Booking ID, Name, Phone, or Model..."
               className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white border border-gray-200 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
-          <button onClick={exportCSV}
-            className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 text-sm font-medium transition-all">
-            <Download className="w-4 h-4" /> Export Bookings
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowFilter(true)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 hover:border-gray-300 text-sm font-medium transition-all">
+              <Filter className="w-4 h-4" /> Filter
+            </button>
+            <button onClick={exportCSV}
+              className="hidden sm:flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 text-sm font-medium transition-all">
+              <Download className="w-4 h-4" /> Export Bookings
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-6">
@@ -395,6 +402,54 @@ ${booking.trackingId || 'N/A'}
             </div>
           </div>
         </div>
+
+        {/* Filter Drawer */}
+        {showFilter && (
+          <div className="fixed inset-0 z-50 bg-black/30 sm:bg-black/20" onClick={() => setShowFilter(false)}>
+            <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-xl p-6 overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-semibold text-gray-900 text-lg">Filters</h3>
+                <button onClick={() => setShowFilter(false)} className="p-1 rounded-lg hover:bg-gray-100 transition-all">
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">From Date</label>
+                  <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-sky-400" />
+                </div>
+                <div>
+                  <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">To Date</label>
+                  <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-sky-400" />
+                </div>
+                <div>
+                  <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">Brand</label>
+                  <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-sky-400 appearance-none">
+                    <option value="">All Brands</option>
+                    {uniqueBrands.map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">Status</label>
+                  <select value={filter} onChange={(e) => setFilter(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-sky-400 appearance-none">
+                    <option value="all">All Statuses</option>
+                    {statuses.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  </select>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button onClick={() => { setDateFrom(''); setDateTo(''); setBrandFilter(''); setFilter('all'); }}
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium transition-all">Reset</button>
+                  <button onClick={() => setShowFilter(false)}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-sky-500 text-white hover:bg-sky-600 text-sm font-medium transition-all shadow-sm">Apply</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-3 sm:space-y-4">
           {filtered.length === 0 ? (
@@ -622,6 +677,20 @@ ${booking.trackingId || 'N/A'}
                     <MessageCircle className="w-4 h-4" /> Send WhatsApp Update
                   </a>
 
+                  {/* Invoice Upload - Ready for Pickup */}
+                  {booking.status === 'ready_for_pickup' && (
+                    <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
+                      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
+                      <InvoiceUpload
+                        bookingId={booking.id}
+                        currentInvoice={booking.invoiceUrl || null}
+                        onUpload={(url) => {
+                          setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
+                        }}
+                      />
+                    </div>
+                  )}
+
                   {/* Customer Rating */}
                   {booking.status === 'completed' && !booking.customerRating && (
                     <div className="border-t border-gray-100 pt-3 mt-3">
@@ -775,6 +844,20 @@ ${booking.trackingId || 'N/A'}
                         </a>
                       )}
                     </div>
+
+                    {/* Invoice Upload - Ready for Pickup */}
+                    {booking.status === 'ready_for_pickup' && (
+                      <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
+                        <InvoiceUpload
+                          bookingId={booking.id}
+                          currentInvoice={booking.invoiceUrl || null}
+                          onUpload={(url) => {
+                            setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
+                          }}
+                        />
+                      </div>
+                    )}
 
                     {/* Additional Information */}
                     {booking.additionalNotes && (
@@ -1016,6 +1099,73 @@ function PhotoUpload({ bookingId, label, type, currentImage, onUpload, onPreview
         </button>
       )}
       <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handleFile} className="hidden" />
+    </div>
+  );
+}
+
+function InvoiceUpload({ bookingId, currentInvoice, onUpload }: {
+  bookingId: string;
+  currentInvoice: string | null;
+  onUpload: (url: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [invoiceUrl, setInvoiceUrl] = useState<string | null>(currentInvoice);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      alert('Only PDF files are allowed.');
+      return;
+    }
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('bookingId', bookingId);
+    try {
+      const res = await fetch('/api/admin/upload/invoice', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Upload failed');
+      const { url } = await res.json();
+      setInvoiceUrl(url);
+      onUpload(url);
+    } catch {
+      alert('Failed to upload invoice.');
+    }
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const removeInvoice = async () => {
+    setInvoiceUrl(null);
+    onUpload('');
+  };
+
+  return (
+    <div>
+      {invoiceUrl ? (
+        <div className="flex items-center gap-2">
+          <a href={invoiceUrl} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 text-xs font-medium transition-all">
+            <FileText className="w-3.5 h-3.5" /> View Invoice
+          </a>
+          <button onClick={removeInvoice}
+            className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all">
+            <X className="w-3 h-3" /> Remove
+          </button>
+          <button onClick={() => inputRef.current?.click()}
+            className="flex items-center gap-1 px-2.5 py-2 rounded-lg text-xs font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all">
+            <Upload className="w-3 h-3" /> Replace
+          </button>
+        </div>
+      ) : (
+        <button onClick={() => inputRef.current?.click()} disabled={uploading}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-500 bg-white border border-gray-200 hover:border-gray-300 transition-all disabled:opacity-50">
+          {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+          {uploading ? 'Uploading...' : 'Upload Invoice PDF'}
+        </button>
+      )}
+      <input ref={inputRef} type="file" accept=".pdf" onChange={handleFile} className="hidden" />
     </div>
   );
 }

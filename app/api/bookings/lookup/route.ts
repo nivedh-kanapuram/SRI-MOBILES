@@ -18,7 +18,7 @@ export async function POST(req: Request) {
           status: true, adminNotes: true, serviceType: true,
           beforeImage: true, afterImage: true,
           visitDate: true, visitTimeSlot: true,
-          pickupAddress: true, pickupLandmark: true, pincode: true,
+          pickupAddress: true, pickupLandmark: true, pincode: true, invoiceUrl: true,
           pickupDate: true, pickupTimeSlot: true,
           createdAt: true, updatedAt: true,
         },
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
           status: true, adminNotes: true, serviceType: true,
           beforeImage: true, afterImage: true,
           visitDate: true, visitTimeSlot: true,
-          pickupAddress: true, pickupLandmark: true, pincode: true,
+          pickupAddress: true, pickupLandmark: true, pincode: true, invoiceUrl: true,
           pickupDate: true, pickupTimeSlot: true,
           createdAt: true, updatedAt: true,
         },
@@ -41,7 +41,10 @@ export async function POST(req: Request) {
     }
 
     if (!booking) {
-      return NextResponse.json({ error: 'No booking found' }, { status: 404 });
+      return NextResponse.json({
+        error: 'Booking not found. If you believe this is a mistake, please contact Sri Mobiles.',
+        phone: '9948299426',
+      }, { status: 404 });
     }
 
     return NextResponse.json(booking);
