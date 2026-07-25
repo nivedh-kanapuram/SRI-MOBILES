@@ -69,41 +69,30 @@ export default function AdminPage() {
   const [notification, setNotification] = useState<{ bookingId: string; trackingId: string | null; fullName: string; deviceType: string; brand: string; model: string; createdAt: string } | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const seenNotifications = useRef(new Set<string>());
-  const audioCtxRef = useRef<AudioContext | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const initAudio = useCallback(() => {
-    if (audioCtxRef.current) return;
+    if (audioRef.current) return;
     try {
-      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AC) return;
-      const ctx = new AC();
-      if (ctx.state === 'suspended') ctx.resume();
-      audioCtxRef.current = ctx;
+      const a = new Audio('/sounds/telegram_notification.mp3');
+      a.preload = 'auto';
+      a.volume = 0.40;
+      audioRef.current = a;
     } catch (e) { console.error('Audio init error:', e); }
   }, []);
 
   const playNotificationSound = useCallback(() => {
-    const ctx = audioCtxRef.current;
-    if (!ctx) return;
+    const a = audioRef.current;
+    if (!a) return;
     try {
-      if (ctx.state === 'suspended') ctx.resume();
-      const g = ctx.createGain();
-      g.connect(ctx.destination);
-      g.gain.setValueAtTime(0.25, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-      const o = ctx.createOscillator();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(880, ctx.currentTime);
-      o.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
-      o.connect(g);
-      o.start(ctx.currentTime);
-      o.stop(ctx.currentTime + 0.5);
+      a.currentTime = 0;
+      a.play().catch((e) => { if (e.name !== 'AbortError') console.error('Play sound error:', e); });
     } catch (e) { console.error('Play sound error:', e); }
   }, []);
 
   useEffect(() => {
     if (status !== 'authenticated') return;
-    const unlock = () => { initAudio(); document.removeEventListener('click', unlock); document.removeEventListener('keydown', unlock); };
+    const unlock = () => { initAudio(); const a = audioRef.current; if (a) { a.play().then(() => a.pause()).catch(() => {}); } document.removeEventListener('click', unlock); document.removeEventListener('keydown', unlock); };
     document.addEventListener('click', unlock);
     document.addEventListener('keydown', unlock);
     return () => { document.removeEventListener('click', unlock); document.removeEventListener('keydown', unlock); };
