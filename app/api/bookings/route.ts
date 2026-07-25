@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       data: {
         bookingId: booking.id,
         data: JSON.stringify({
-          id: booking.id,
+          bookingId: booking.id,
           trackingId: booking.trackingId,
           fullName: booking.fullName,
           deviceType: booking.deviceType,

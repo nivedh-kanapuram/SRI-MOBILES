@@ -147,16 +147,16 @@ export default function AdminPage() {
         if (!e.data) return;
         try {
           const data = JSON.parse(e.data);
-          if (seenNotifications.current.has(data.id)) return;
-          seenNotifications.current.add(data.id);
+          if (seenNotifications.current.has(data.bookingId)) return;
+          seenNotifications.current.add(data.bookingId);
           playNotificationSound();
           setNotification(data);
           setBookings(prev => {
-            if (prev.some(b => b.id === data.id)) return prev;
-            return [{ ...data, status: 'booking_confirmed', phone: '', email: null, problem: '', issueCategory: null, additionalNotes: null, adminNotes: null, serviceType: 'self_visit', customerPhoto: null, beforeImage: null, afterImage: null, customerRating: null, invoiceUrl: null, visitDate: null, visitTimeSlot: null, pickupAddress: null, pickupLandmark: null, pincode: null, pickupLatitude: null, pickupLongitude: null, pickupDate: null, pickupTimeSlot: null, user: { name: '', email: '' }, review: null }, ...prev];
+            if (prev.some(b => b.id === data.bookingId)) return prev;
+            return [{ ...data, id: data.bookingId, status: 'booking_confirmed', phone: '', email: null, problem: '', issueCategory: null, additionalNotes: null, adminNotes: null, serviceType: 'self_visit', customerPhoto: null, beforeImage: null, afterImage: null, customerRating: null, invoiceUrl: null, visitDate: null, visitTimeSlot: null, pickupAddress: null, pickupLandmark: null, pincode: null, pickupLatitude: null, pickupLongitude: null, pickupDate: null, pickupTimeSlot: null, user: { name: '', email: '' }, review: null }, ...prev];
           });
           setStats(prev => prev ? { ...prev, total: prev.total + 1, pending: prev.pending + 1 } : prev);
-        } catch { /* ignore parse errors */ }
+        } catch (e) { console.error('[SSE] Error processing notification:', e); }
       });
       es.onerror = () => {
         es?.close();
