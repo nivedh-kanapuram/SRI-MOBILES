@@ -89,7 +89,7 @@ export default function AdminPage() {
       if (ctx.state === 'suspended') ctx.resume();
       const g = ctx.createGain();
       g.connect(ctx.destination);
-      g.gain.setValueAtTime(0.12, ctx.currentTime);
+      g.gain.setValueAtTime(0.25, ctx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
       const o = ctx.createOscillator();
       o.type = 'sine';
@@ -118,16 +118,23 @@ export default function AdminPage() {
     setSearchQuery('');
     setDateFrom('');
     setDateTo('');
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        const el = document.getElementById(`booking-${bookingId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-          setToast({ message: 'This booking no longer exists.', type: 'error' });
-        }
-      }, 100);
-    });
+    let elapsed = 0;
+    const interval = 100;
+    const maxWait = 3000;
+    const tryScroll = () => {
+      const el = document.getElementById(`booking-${bookingId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      elapsed += interval;
+      if (elapsed >= maxWait) {
+        setToast({ message: 'This booking no longer exists.', type: 'error' });
+        return;
+      }
+      setTimeout(tryScroll, interval);
+    };
+    requestAnimationFrame(() => setTimeout(tryScroll, interval));
   }, []);
 
   useEffect(() => {
