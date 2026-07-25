@@ -69,22 +69,65 @@ export default function AdminPage() {
   const [notification, setNotification] = useState<{ bookingId: string; trackingId: string | null; fullName: string; deviceType: string; brand: string; model: string; createdAt: string } | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const seenNotifications = useRef(new Set<string>());
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const initAudio = useCallback(() => {
+    if (audioCtxRef.current) return;
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      if (ctx.state === 'suspended') ctx.resume();
+      audioCtxRef.current = ctx;
+    } catch (e) { console.error('Audio init error:', e); }
+  }, []);
 
   const playNotificationSound = useCallback(() => {
+    const ctx = audioCtxRef.current;
+    if (!ctx) return;
     try {
-      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
       const g = ctx.createGain();
       g.connect(ctx.destination);
-      g.gain.value = 0.15;
+      g.gain.setValueAtTime(0.12, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
       const o = ctx.createOscillator();
       o.type = 'sine';
       o.frequency.setValueAtTime(880, ctx.currentTime);
-      o.frequency.setValueAtTime(1100, ctx.currentTime + 0.12);
+      o.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
       o.connect(g);
       o.start(ctx.currentTime);
-      o.stop(ctx.currentTime + 0.3);
-      setTimeout(() => ctx.close(), 400);
-    } catch { /* audio not supported */ }
+      o.stop(ctx.currentTime + 0.5);
+    } catch (e) { console.error('Play sound error:', e); }
+  }, []);
+
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    const unlock = () => { initAudio(); document.removeEventListener('click', unlock); document.removeEventListener('keydown', unlock); };
+    document.addEventListener('click', unlock);
+    document.addEventListener('keydown', unlock);
+    return () => { document.removeEventListener('click', unlock); document.removeEventListener('keydown', unlock); };
+  }, [status, initAudio]);
+
+  const scrollToBooking = useCallback((bookingId: string) => {
+    setNotification(null);
+    setHighlightId(bookingId);
+    setFilter('all');
+    setServiceFilter('all');
+    setBrandFilter('');
+    setSearchQuery('');
+    setDateFrom('');
+    setDateTo('');
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const el = document.getElementById(`booking-${bookingId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          setToast({ message: 'This booking no longer exists.', type: 'error' });
+        }
+      }, 100);
+    });
   }, []);
 
   useEffect(() => {
@@ -323,12 +366,7 @@ export default function AdminPage() {
                 Customer: {notification.fullName}<br />
                 Device: {notification.brand} {notification.model}
               </p>
-              <button onClick={() => {
-                setNotification(null);
-                setHighlightId(notification.bookingId);
-                const el = document.getElementById(`booking-${notification.bookingId}`);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }} className="mt-2 text-[13px] font-medium text-sky-600 hover:text-sky-700 transition-colors">
+              <button onClick={() => scrollToBooking(notification.bookingId)} className="mt-2 text-[13px] font-medium text-sky-600 hover:text-sky-700 transition-colors">
                 View Booking →
               </button>
             </div>
@@ -513,7 +551,7 @@ export default function AdminPage() {
             const hasDraft = !!draftChanges[booking.id];
             const problemExpanded = expandedProblems.has(booking.id);
             return (
-              <div key={booking.id} id={`booking-${booking.id}`} className={`bg-white border border-gray-200 rounded-2xl p-3 sm:p-6 shadow-card hover:shadow-card-hover transition-all duration-300 ${highlightId === booking.id ? 'ring-2 ring-sky-400 shadow-lg' : ''}`}>
+              <div key={booking.id} id={`booking-${booking.id}`} className={`bg-white border border-gray-200 rounded-2xl p-3 sm:p-6 shadow-card hover:shadow-card-hover transition-all duration-500 ${highlightId === booking.id ? 'bg-sky-50 border-sky-300 shadow-lg' : ''}`}>
                 {/* Mobile Layout */}
                 <div className="sm:hidden space-y-2.5">
                   {/* Header: Name + Phone + Badges */}
