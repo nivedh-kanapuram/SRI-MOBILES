@@ -56,6 +56,14 @@ model Booking {
   updatedAt       DateTime  @updatedAt
 }
 
+model PendingNotification {
+  id        String   @id @default(uuid())
+  bookingId String
+  data      String
+  delivered Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
 model DeletedBooking {
   id         String   @id @default(uuid())
   trackingId String

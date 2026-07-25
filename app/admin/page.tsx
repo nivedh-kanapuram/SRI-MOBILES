@@ -66,6 +66,71 @@ export default function AdminPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+  const [notification, setNotification] = useState<{ bookingId: string; trackingId: string | null; fullName: string; deviceType: string; brand: string; model: string; createdAt: string } | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const seenNotifications = useRef(new Set<string>());
+
+  const playNotificationSound = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const g = ctx.createGain();
+      g.connect(ctx.destination);
+      g.gain.value = 0.15;
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(880, ctx.currentTime);
+      o.frequency.setValueAtTime(1100, ctx.currentTime + 0.12);
+      o.connect(g);
+      o.start(ctx.currentTime);
+      o.stop(ctx.currentTime + 0.3);
+      setTimeout(() => ctx.close(), 400);
+    } catch { /* audio not supported */ }
+  }, []);
+
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    let es: EventSource | null = null;
+    let reconnectTimeout: ReturnType<typeof setTimeout>;
+    const connect = () => {
+      es = new EventSource('/api/admin/notifications/stream');
+      es.addEventListener('new-booking', (e) => {
+        if (!e.data) return;
+        try {
+          const data = JSON.parse(e.data);
+          if (seenNotifications.current.has(data.id)) return;
+          seenNotifications.current.add(data.id);
+          playNotificationSound();
+          setNotification(data);
+          setBookings(prev => {
+            if (prev.some(b => b.id === data.id)) return prev;
+            return [{ ...data, status: 'booking_confirmed', phone: '', email: null, problem: '', issueCategory: null, additionalNotes: null, adminNotes: null, serviceType: 'self_visit', customerPhoto: null, beforeImage: null, afterImage: null, customerRating: null, invoiceUrl: null, visitDate: null, visitTimeSlot: null, pickupAddress: null, pickupLandmark: null, pincode: null, pickupLatitude: null, pickupLongitude: null, pickupDate: null, pickupTimeSlot: null, user: { name: '', email: '' }, review: null }, ...prev];
+          });
+          setStats(prev => prev ? { ...prev, total: prev.total + 1, pending: prev.pending + 1 } : prev);
+        } catch { /* ignore parse errors */ }
+      });
+      es.onerror = () => {
+        es?.close();
+        reconnectTimeout = setTimeout(connect, 5000);
+      };
+    };
+    connect();
+    return () => {
+      es?.close();
+      clearTimeout(reconnectTimeout);
+    };
+  }, [status, playNotificationSound]);
+
+  useEffect(() => {
+    if (!notification) return;
+    const t = setTimeout(() => setNotification(null), 5000);
+    return () => clearTimeout(t);
+  }, [notification]);
+
+  useEffect(() => {
+    if (!highlightId) return;
+    const t = setTimeout(() => setHighlightId(null), 3000);
+    return () => clearTimeout(t);
+  }, [highlightId]);
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/auth/signin');
@@ -246,6 +311,33 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+      {notification && (
+        <div className="fixed top-24 right-4 z-50 bg-white border border-sky-200 rounded-xl shadow-xl p-4 max-w-sm w-full animate-in slide-in-from-top transition-all duration-300">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg">🔔</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-900 font-semibold text-sm">New Booking Received</p>
+              <p className="text-gray-500 text-[13px] mt-0.5">
+                Customer: {notification.fullName}<br />
+                Device: {notification.brand} {notification.model}
+              </p>
+              <button onClick={() => {
+                setNotification(null);
+                setHighlightId(notification.bookingId);
+                const el = document.getElementById(`booking-${notification.bookingId}`);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }} className="mt-2 text-[13px] font-medium text-sky-600 hover:text-sky-700 transition-colors">
+                View Booking →
+              </button>
+            </div>
+            <button onClick={() => setNotification(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Image Preview Modal */}
       {previewImage && (
@@ -421,7 +513,7 @@ export default function AdminPage() {
             const hasDraft = !!draftChanges[booking.id];
             const problemExpanded = expandedProblems.has(booking.id);
             return (
-              <div key={booking.id} className="bg-white border border-gray-200 rounded-2xl p-3 sm:p-6 shadow-card hover:shadow-card-hover transition-all duration-300">
+              <div key={booking.id} id={`booking-${booking.id}`} className={`bg-white border border-gray-200 rounded-2xl p-3 sm:p-6 shadow-card hover:shadow-card-hover transition-all duration-300 ${highlightId === booking.id ? 'ring-2 ring-sky-400 shadow-lg' : ''}`}>
                 {/* Mobile Layout */}
                 <div className="sm:hidden space-y-2.5">
                   {/* Header: Name + Phone + Badges */}

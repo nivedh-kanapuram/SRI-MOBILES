@@ -42,6 +42,21 @@ export async function POST(req: Request) {
       },
     });
 
+    await prisma.pendingNotification.create({
+      data: {
+        bookingId: booking.id,
+        data: JSON.stringify({
+          id: booking.id,
+          trackingId: booking.trackingId,
+          fullName: booking.fullName,
+          deviceType: booking.deviceType,
+          brand: booking.brand,
+          model: booking.model,
+          createdAt: booking.createdAt.toISOString(),
+        }),
+      },
+    });
+
     const isPickup = serviceType === 'pickup';
     const waMessage = isPickup
       ? `Your pickup booking has been confirmed!%0A%0ATracking ID: ${trackingId}%0ADevice: ${brand} ${deviceModel}%0APickup Date: ${pickupDate}%0ATime Slot: ${pickupTimeSlot}%0A%0AOur team will arrive during your selected time slot.%0A%0A-Sri Mobiles`
