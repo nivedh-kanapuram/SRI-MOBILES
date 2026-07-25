@@ -70,6 +70,8 @@ export default function AdminPage() {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const seenNotifications = useRef(new Set<string>());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const draftChangesRef = useRef(draftChanges);
+  useEffect(() => { draftChangesRef.current = draftChanges; }, [draftChanges]);
 
   const initAudio = useCallback(() => {
     if (audioRef.current) return;
@@ -158,6 +160,23 @@ export default function AdminPage() {
       clearTimeout(reconnectTimeout);
     };
   }, [status, playNotificationSound]);
+
+  // Fallback polling to catch missed SSE events (Vercel serverless timeouts, reconnect gaps)
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    const id = setInterval(async () => {
+      if (Object.keys(draftChangesRef.current).length > 0) return;
+      try {
+        const [b, s] = await Promise.all([
+          fetch('/api/admin/bookings').then(r => r.json()),
+          fetch('/api/admin/stats').then(r => r.json()),
+        ]);
+        setBookings(b);
+        setStats(s);
+      } catch { /* silent */ }
+    }, 5000);
+    return () => clearInterval(id);
+  }, [status]);
 
   useEffect(() => {
     if (!notification) return;
