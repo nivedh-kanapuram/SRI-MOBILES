@@ -14,6 +14,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Please enter a valid Indian mobile number.' }, { status: 400 });
     }
 
+    // Validate time slot is not in the past for today's date
+    function isPastSlot(date: string, timeSlot: string): boolean {
+      const now = new Date();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(date + 'T00:00:00').getTime() > today.getTime()) return false;
+      const startStr = timeSlot.split(' - ')[0];
+      const [time, modifier] = startStr.split(' ');
+      let [hours, minutes] = time.split(':').map(Number);
+      if (modifier === 'PM' && hours !== 12) hours += 12;
+      if (modifier === 'AM' && hours === 12) hours = 0;
+      const slotStart = new Date();
+      slotStart.setHours(hours, minutes, 0, 0);
+      return now >= slotStart;
+    }
+    if (serviceType === 'self_visit' && visitDate && visitTimeSlot && isPastSlot(visitDate, visitTimeSlot)) {
+      return NextResponse.json({ error: 'Please select a future time slot.' }, { status: 400 });
+    }
+    if (serviceType === 'pickup' && pickupDate && pickupTimeSlot && isPastSlot(pickupDate, pickupTimeSlot)) {
+      return NextResponse.json({ error: 'Please select a future time slot.' }, { status: 400 });
+    }
+
     // Duplicate booking protection: same phone + model + issue within 5 minutes
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
     const duplicate = await prisma.booking.findFirst({

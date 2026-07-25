@@ -17,6 +17,26 @@ const timeSlots = [
   '05:00 PM - 07:00 PM',
 ];
 
+function parseTimeToMinutes(timeStr: string): number {
+  const [time, modifier] = timeStr.split(' ');
+  let [hours, minutes] = time.split(':').map(Number);
+  if (modifier === 'PM' && hours !== 12) hours += 12;
+  if (modifier === 'AM' && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+}
+
+function getFilteredTimeSlots(dateStr: string): { slots: string[]; allUnavailable: boolean } {
+  if (!dateStr) return { slots: timeSlots, allUnavailable: false };
+  const now = new Date();
+  const selected = new Date(dateStr + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (selected.getTime() > today.getTime()) return { slots: timeSlots, allUnavailable: false };
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const available = timeSlots.filter(slot => parseTimeToMinutes(slot.split(' - ')[0]) > currentMinutes);
+  return { slots: available, allUnavailable: available.length === 0 };
+}
+
 const validPincodes: string[] = [
   '500060', '500005', '500065', '500013', '500020',
   '500023', '500029', '500036', '500044', '500061',
@@ -419,16 +439,28 @@ export default function BookingPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">Pickup Date *</label>
-                  <input type="date" required value={form.pickupDate} onChange={(e) => update('pickupDate', e.target.value)} min={new Date().toISOString().split('T')[0]}
+                  <input type="date" required value={form.pickupDate} onChange={(e) => {
+                    const d = e.target.value;
+                    update('pickupDate', d);
+                    const { slots, allUnavailable } = getFilteredTimeSlots(d);
+                    if (allUnavailable || !slots.includes(form.pickupTimeSlot)) update('pickupTimeSlot', '');
+                  }} min={new Date().toISOString().split('T')[0]}
                     className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 text-gray-900 text-[15px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
                 </div>
                 <div>
                   <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">Time Slot *</label>
-                  <select required value={form.pickupTimeSlot} onChange={(e) => update('pickupTimeSlot', e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 text-gray-900 text-[15px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all appearance-none">
-                    <option value="">Select slot</option>
-                    {timeSlots.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
+                  {(() => {
+                    const { slots, allUnavailable } = getFilteredTimeSlots(form.pickupDate);
+                    return (
+                      <select required value={form.pickupTimeSlot} onChange={(e) => update('pickupTimeSlot', e.target.value)}
+                        className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 text-gray-900 text-[15px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all appearance-none">
+                        <option value="">{allUnavailable ? 'No slots available today' : 'Select slot'}</option>
+                        {allUnavailable ? (
+                          <option value="" disabled>No time slots are available for today. Please select tomorrow or another future date.</option>
+                        ) : slots.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -439,16 +471,28 @@ export default function BookingPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">Visit Date *</label>
-                <input type="date" required value={form.visitDate} onChange={(e) => update('visitDate', e.target.value)} min={new Date().toISOString().split('T')[0]}
+                <input type="date" required value={form.visitDate} onChange={(e) => {
+                  const d = e.target.value;
+                  update('visitDate', d);
+                  const { slots, allUnavailable } = getFilteredTimeSlots(d);
+                  if (allUnavailable || !slots.includes(form.visitTimeSlot)) update('visitTimeSlot', '');
+                }} min={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 text-gray-900 text-[15px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
               </div>
               <div>
                 <label className="block text-gray-500 text-[13px] uppercase tracking-wider mb-2">Visit Time *</label>
-                <select required value={form.visitTimeSlot} onChange={(e) => update('visitTimeSlot', e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 text-gray-900 text-[15px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all appearance-none">
-                  <option value="">Select time</option>
-                  {timeSlots.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                {(() => {
+                  const { slots, allUnavailable } = getFilteredTimeSlots(form.visitDate);
+                  return (
+                    <select required value={form.visitTimeSlot} onChange={(e) => update('visitTimeSlot', e.target.value)}
+                      className="w-full px-4 py-3.5 rounded-xl bg-white border border-gray-200 text-gray-900 text-[15px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all appearance-none">
+                      <option value="">{allUnavailable ? 'No slots available today' : 'Select time'}</option>
+                      {allUnavailable ? (
+                        <option value="" disabled>No time slots are available for today. Please select tomorrow or another future date.</option>
+                      ) : slots.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  );
+                })()}
               </div>
             </div>
           </div>
