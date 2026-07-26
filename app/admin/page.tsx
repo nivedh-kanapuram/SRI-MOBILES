@@ -957,6 +957,29 @@ export default function AdminPage() {
                       ) : null}
                     </div>
 
+                    <ProblemDescription text={booking.problem} className="mt-0.5" />
+
+                    {/* Additional Information */}
+                    {booking.additionalNotes && (
+                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
+                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Additional Information</p>
+                        <p className="text-gray-600 text-sm whitespace-pre-wrap break-words leading-relaxed">{booking.additionalNotes}</p>
+                      </div>
+                    )}
+
+                    {/* Customer Photo */}
+                    {booking.customerPhoto && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500 font-medium">Customer Photo:</span>
+                        <button onClick={() => setPreviewImage(booking.customerPhoto)} className="group relative">
+                          <img src={booking.customerPhoto} alt="Customer photo" className="w-12 h-12 rounded-lg object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-all" />
+                          <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/10 transition-all flex items-center justify-center">
+                            <Maximize2 className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-all" />
+                          </div>
+                        </button>
+                      </div>
+                    )}
+
                     {/* Ready for Dispatch */}
                     {booking.status === 'ready_for_pickup' && (
                       <div className="space-y-4">
@@ -1030,30 +1053,6 @@ export default function AdminPage() {
                             }}
                           />
                         </div>
-                      </div>
-                    )}
-
-                    {/* Additional Information */}
-                    {booking.additionalNotes && (
-                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
-                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Additional Information</p>
-                        <p className="text-gray-600 text-sm whitespace-pre-wrap break-words leading-relaxed">{booking.additionalNotes}</p>
-                      </div>
-                    )}
-
-                    {/* Full Description */}
-                    <ProblemDescription text={booking.problem} className="mt-0.5" />
-
-                    {/* Customer Photo */}
-                    {booking.customerPhoto && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500 font-medium">Customer Photo:</span>
-                        <button onClick={() => setPreviewImage(booking.customerPhoto)} className="group relative">
-                          <img src={booking.customerPhoto} alt="Customer photo" className="w-12 h-12 rounded-lg object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-all" />
-                          <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/10 transition-all flex items-center justify-center">
-                            <Maximize2 className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-all" />
-                          </div>
-                        </button>
                       </div>
                     )}
 
