@@ -715,7 +715,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Before/After Images */}
-                  <div className="flex items-start gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <PhotoUpload
                       bookingId={booking.id}
                       label="Before"
@@ -960,7 +960,7 @@ export default function AdminPage() {
                     )}
 
                     {/* Before/After + Management */}
-                    <div className="flex items-start gap-3 flex-wrap">
+                    <div className="grid grid-cols-2 gap-4">
                       <PhotoUpload
                         bookingId={booking.id}
                         label="Before"
@@ -1113,17 +1113,17 @@ function PhotoUpload({ bookingId, label, type, currentImage, onUpload, onPreview
 
   if (compact) {
     return (
-      <div className="flex-1">
-        <p className="text-[11px] text-gray-400 mb-1">{label}</p>
+      <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100 h-full">
+        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">{label} Repair Photo</p>
         {preview ? (
           <div className="flex flex-col gap-1.5">
             <button onClick={() => onPreview(preview)} className="group relative">
-              <img src={preview} alt={label} className="w-20 h-20 sm:w-[90px] sm:h-[90px] rounded-lg object-cover border border-gray-200" />
+              <img src={preview} alt={label} className="w-full aspect-square rounded-lg object-cover border border-gray-200" />
               <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/10 transition-all flex items-center justify-center">
                 <Maximize2 className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-all" />
               </div>
             </button>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               <button onClick={removeImage}
                 className="flex-1 py-1.5 rounded-lg text-[10px] font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all leading-none">
                 Remove
@@ -1136,9 +1136,9 @@ function PhotoUpload({ bookingId, label, type, currentImage, onUpload, onPreview
           </div>
         ) : (
           <button onClick={() => inputRef.current?.click()} disabled={uploading}
-            className="w-full flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50">
-            {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-            {uploading ? '...' : 'Upload'}
+            className="w-full flex items-center justify-center gap-1.5 py-3 rounded-lg text-[11px] font-medium text-gray-500 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all disabled:opacity-50">
+            {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            {uploading ? 'Uploading...' : 'Upload Photo'}
           </button>
         )}
         <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handleFile} className="hidden" />
@@ -1147,12 +1147,12 @@ function PhotoUpload({ bookingId, label, type, currentImage, onUpload, onPreview
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-gray-500 font-medium min-w-[48px]">{label}:</span>
+    <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-3">{label} Repair Photo</p>
       {preview ? (
         <div className="flex items-center gap-2">
           <button onClick={() => onPreview(preview)}>
-            <img src={preview} alt={label} className="w-10 h-10 rounded-lg object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-all" />
+            <img src={preview} alt={label} className="w-12 h-12 rounded-lg object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-all" />
           </button>
           <button onClick={removeImage}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all">
@@ -1165,7 +1165,7 @@ function PhotoUpload({ bookingId, label, type, currentImage, onUpload, onPreview
         </div>
       ) : (
         <button onClick={() => inputRef.current?.click()} disabled={uploading}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50">
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all disabled:opacity-50">
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
           {uploading ? 'Uploading...' : 'Upload Photo'}
         </button>
@@ -1299,35 +1299,32 @@ function AfterPhotosUpload({ bookingId, currentImages, onUpload, onPreview, comp
 
   if (compact) {
     return (
-      <div className="flex-1">
-        <p className="text-[11px] text-gray-400 mb-1">After Photos</p>
+      <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100 h-full">
+        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">After Repair Photos</p>
         {images.length > 0 ? (
           <div className="flex flex-col gap-1.5">
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {images.slice(0, 4).map((url, i) => (
-                <button key={i} onClick={() => onPreview(url)} className="group relative">
-                  <img src={url} alt={`After ${i + 1}`} className="w-14 h-14 rounded-lg object-cover border border-gray-200" />
-                  <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/10 transition-all" />
+                <button key={i} onClick={() => onPreview(url)} className="group relative flex-1 min-w-0">
+                  <img src={url} alt={`After ${i + 1}`} className="w-full aspect-square rounded-lg object-cover border border-gray-200" />
                 </button>
               ))}
               {images.length > 4 && (
-                <div className="w-14 h-14 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[11px] text-gray-500 font-medium">
+                <div className="flex-1 min-w-0 aspect-square rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[11px] text-gray-500 font-medium">
                   +{images.length - 4}
                 </div>
               )}
             </div>
-            <div className="flex gap-1">
-              <button onClick={() => inputRef.current?.click()}
-                className="flex-1 py-1.5 rounded-lg text-[10px] font-medium text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition-all leading-none">
-                {uploading ? 'Uploading...' : 'Add / Replace'}
-              </button>
-            </div>
+            <button onClick={() => inputRef.current?.click()}
+              className="w-full py-1.5 rounded-lg text-[10px] font-medium text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition-all leading-none">
+              {uploading ? 'Uploading...' : images.length > 0 ? 'Add More Photos' : 'Upload Photos'}
+            </button>
           </div>
         ) : (
           <button onClick={() => inputRef.current?.click()} disabled={uploading}
-            className="w-full flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50">
-            {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-            {uploading ? '...' : 'Upload Photos'}
+            className="w-full flex items-center justify-center gap-1.5 py-3 rounded-lg text-[11px] font-medium text-gray-500 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all disabled:opacity-50">
+            {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            {uploading ? 'Uploading...' : 'Upload Photos'}
           </button>
         )}
         <input ref={inputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp" onChange={handleFiles} className="hidden" />
@@ -1336,14 +1333,14 @@ function AfterPhotosUpload({ bookingId, currentImages, onUpload, onPreview, comp
   }
 
   return (
-    <div>
-      <span className="text-sm text-gray-500 font-medium">After Photos:</span>
+    <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-3">After Repair Photos</p>
       {images.length > 0 ? (
-        <div className="flex flex-wrap gap-2 mt-1.5">
+        <div className="flex flex-wrap gap-2">
           {images.map((url, i) => (
             <div key={i} className="relative group">
               <button onClick={() => onPreview(url)}>
-                <img src={url} alt={`After ${i + 1}`} className="w-16 h-16 rounded-lg object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-all" />
+                <img src={url} alt={`After ${i + 1}`} className="w-14 h-14 rounded-lg object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-all" />
               </button>
               <button onClick={() => removeImage(i)}
                 className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 shadow-sm">
@@ -1353,14 +1350,14 @@ function AfterPhotosUpload({ bookingId, currentImages, onUpload, onPreview, comp
           ))}
           {images.length < 15 && (
             <button onClick={() => inputRef.current?.click()}
-              className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 hover:text-sky-500 hover:border-sky-300 transition-all">
+              className="w-14 h-14 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 hover:text-sky-500 hover:border-sky-300 transition-all">
               <Upload className="w-5 h-5" />
             </button>
           )}
         </div>
       ) : (
         <button onClick={() => inputRef.current?.click()} disabled={uploading}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50 mt-1.5">
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all disabled:opacity-50">
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
           {uploading ? 'Uploading...' : 'Upload Photos'}
         </button>
@@ -1431,12 +1428,12 @@ function VideoUpload({ bookingId, currentVideo, onUpload, compact }: {
 
   if (compact) {
     return (
-      <div className="mt-2">
-        <p className="text-[11px] text-gray-400 mb-1">Repair Video</p>
+      <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100 mt-3">
+        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">After Repair Completion Video</p>
         {videoUrl ? (
           <div className="flex flex-col gap-1.5">
-            <video src={videoUrl} controls className="w-full max-h-32 rounded-lg border border-gray-200" />
-            <div className="flex gap-1">
+            <video src={videoUrl} controls className="w-full rounded-lg border border-gray-200" />
+            <div className="flex gap-1.5">
               <button onClick={removeVideo}
                 className="flex-1 py-1.5 rounded-lg text-[10px] font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all leading-none">
                 Remove
@@ -1448,11 +1445,16 @@ function VideoUpload({ bookingId, currentVideo, onUpload, compact }: {
             </div>
           </div>
         ) : (
-          <button onClick={() => inputRef.current?.click()} disabled={uploading}
-            className="w-full flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50">
-            {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-            {uploading ? '...' : 'Upload Video'}
-          </button>
+          <>
+            <button onClick={() => inputRef.current?.click()} disabled={uploading}
+              className="w-full flex items-center justify-center gap-1.5 py-3 rounded-lg text-[11px] font-medium text-gray-500 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all disabled:opacity-50">
+              {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : '🎥 Upload Completion Video'}
+            </button>
+            <div className="mt-2 space-y-0.5">
+              <p className="text-[10px] text-gray-400">Supported Formats: MP4 • MOV • WEBM</p>
+              <p className="text-[10px] text-gray-400">Maximum Duration: 2 Minutes</p>
+            </div>
+          </>
         )}
         <input ref={inputRef} type="file" accept=".mp4,.mov,.webm" onChange={handleFile} className="hidden" />
       </div>
@@ -1460,12 +1462,12 @@ function VideoUpload({ bookingId, currentVideo, onUpload, compact }: {
   }
 
   return (
-    <div className="mt-3">
-      <span className="text-sm text-gray-500 font-medium">Repair Video:</span>
+    <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-3">After Repair Completion Video</p>
       {videoUrl ? (
-        <div className="flex items-center gap-2 mt-1.5">
+        <div className="flex items-center gap-3">
           <video src={videoUrl} controls className="w-48 h-28 rounded-lg border border-gray-200 object-cover" />
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             <button onClick={removeVideo}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all">
               <X className="w-3 h-3" /> Remove
@@ -1477,11 +1479,16 @@ function VideoUpload({ bookingId, currentVideo, onUpload, compact }: {
           </div>
         </div>
       ) : (
-        <button onClick={() => inputRef.current?.click()} disabled={uploading}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50 mt-1.5">
-          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-          {uploading ? 'Uploading...' : 'Upload Video (MP4, MOV, WEBM)'}
-        </button>
+        <>
+          <button onClick={() => inputRef.current?.click()} disabled={uploading}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-500 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 transition-all disabled:opacity-50">
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : '🎥 Upload Completion Video'}
+          </button>
+          <div className="mt-2 space-y-0.5">
+            <p className="text-[11px] text-gray-400">Supported Formats: MP4 • MOV • WEBM</p>
+            <p className="text-[11px] text-gray-400">Maximum Duration: 2 Minutes</p>
+          </div>
+        </>
       )}
       <input ref={inputRef} type="file" accept=".mp4,.mov,.webm" onChange={handleFile} className="hidden" />
     </div>
