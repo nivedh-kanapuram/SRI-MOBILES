@@ -1114,7 +1114,7 @@ function PhotoUpload({ bookingId, label, type, currentImage, onUpload, onPreview
   if (compact) {
     return (
       <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100 h-full">
-        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">{label} Repair Photo</p>
+        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">{label} Repair</p>
         {preview ? (
           <div className="flex flex-col gap-1.5">
             <button onClick={() => onPreview(preview)} className="group relative">
@@ -1148,7 +1148,7 @@ function PhotoUpload({ bookingId, label, type, currentImage, onUpload, onPreview
 
   return (
     <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
-      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-3">{label} Repair Photo</p>
+      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-3">{label} Repair</p>
       {preview ? (
         <div className="flex items-center gap-2">
           <button onClick={() => onPreview(preview)}>
