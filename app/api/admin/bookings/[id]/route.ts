@@ -9,7 +9,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   const { id } = await params;
-  const { status, adminNotes } = await req.json();
+  const { status, adminNotes, outstandingAmount, paymentStatus } = await req.json();
 
   if (status) {
     const existing = await prisma.booking.findUnique({
@@ -21,12 +21,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
   }
 
+  const data: Record<string, string | number | null> = {};
+  if (status) data.status = status;
+  if (adminNotes !== undefined) data.adminNotes = adminNotes;
+  if (outstandingAmount !== undefined) data.outstandingAmount = outstandingAmount;
+  if (paymentStatus !== undefined) {
+    data.paymentStatus = paymentStatus;
+    if (paymentStatus === 'paid') {
+      data.status = 'completed';
+    }
+  }
+
   const booking = await prisma.booking.update({
     where: { id },
-    data: {
-      ...(status && { status }),
-      ...(adminNotes !== undefined && { adminNotes }),
-    },
+    data,
   });
 
   return NextResponse.json(booking);

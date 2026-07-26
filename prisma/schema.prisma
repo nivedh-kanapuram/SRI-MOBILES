@@ -52,7 +52,9 @@ model Booking {
   beforeImage     String?
   afterImage      String?
   afterImages     String?
-  videoUrl        String?
+  videoUrl            String?
+  outstandingAmount   Int?
+  paymentStatus       String  @default("not_paid")
   review          Review?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

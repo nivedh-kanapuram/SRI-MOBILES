@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ trackin
     select: {
       trackingId: true, fullName: true, phone: true, email: true,
       deviceType: true, brand: true, model: true, problem: true,
-      status: true, adminNotes: true, beforeImage: true, afterImage: true, afterImages: true, videoUrl: true,
+      status: true, adminNotes: true, beforeImage: true, afterImage: true, afterImages: true, videoUrl: true, outstandingAmount: true, paymentStatus: true,
       createdAt: true, updatedAt: true,
     },
   });

@@ -24,6 +24,7 @@ interface AdminBooking {
   pickupDate: string | null; pickupTimeSlot: string | null;
   customerRating: number | null;
   invoiceUrl: string | null;
+  outstandingAmount: number | null; paymentStatus: string;
   user: { name: string; email: string }; review: AdminReview | null;
 }
 
@@ -35,6 +36,8 @@ interface DraftChanges {
   afterImage?: string;
   afterImages?: string;
   videoUrl?: string;
+  outstandingAmount?: number;
+  paymentStatus?: string;
 }
 
 const statuses = [
@@ -244,6 +247,8 @@ export default function AdminPage() {
 
       const patchBody: Record<string, unknown> = {};
       if (draft.status) patchBody.status = draft.status;
+      if (draft.outstandingAmount !== undefined) patchBody.outstandingAmount = draft.outstandingAmount;
+      if (draft.paymentStatus !== undefined) patchBody.paymentStatus = draft.paymentStatus;
 
       if (Object.keys(patchBody).length > 0) {
         promises.push(
@@ -781,17 +786,48 @@ export default function AdminPage() {
                     <MessageCircle className="w-4 h-4" /> Send WhatsApp Update
                   </a>
 
-                  {/* Invoice Upload - Ready for Dispatch */}
+                  {/* Invoice & Payment - Ready for Dispatch */}
                   {booking.status === 'ready_for_pickup' && (
-                    <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
-                      <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
-                      <InvoiceUpload
-                        bookingId={booking.id}
-                        currentInvoice={booking.invoiceUrl || null}
-                        onUpload={(url) => {
-                          setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
-                        }}
-                      />
+                    <div className="space-y-3">
+                      <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
+                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Payment</p>
+                        <div className="space-y-2.5">
+                          <div>
+                            <label className="block text-[11px] text-gray-500 font-medium mb-1">Outstanding Amount</label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">₹</span>
+                              <input type="number" min="0" value={(draftChanges[booking.id]?.outstandingAmount ?? booking.outstandingAmount ?? '')} onChange={(e) => setDraft(booking.id, { outstandingAmount: e.target.value === '' ? (null as unknown as number) : Number(e.target.value) })}
+                                placeholder="0"
+                                className="w-full pl-8 pr-3 py-2.5 rounded-lg bg-white border border-gray-200 text-gray-900 text-[13px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[11px] text-gray-500 font-medium mb-1.5">Payment Status</label>
+                            <div className="flex gap-3">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name={`payment-${booking.id}`} value="not_paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'not_paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'not_paid' })}
+                                  className="w-4 h-4 text-gray-400 border-gray-300 focus:ring-gray-400" />
+                                <span className="text-[13px] text-gray-600">Not Paid</span>
+                              </label>
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name={`payment-${booking.id}`} value="paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'paid' })}
+                                  className="w-4 h-4 text-green-500 border-gray-300 focus:ring-green-400" />
+                                <span className="text-[13px] text-gray-600">Paid</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
+                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
+                        <InvoiceUpload
+                          bookingId={booking.id}
+                          currentInvoice={booking.invoiceUrl || null}
+                          onUpload={(url) => {
+                            setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
+                          }}
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -921,17 +957,48 @@ export default function AdminPage() {
                       ) : null}
                     </div>
 
-                    {/* Invoice Upload - Ready for Dispatch */}
+                    {/* Invoice & Payment - Ready for Dispatch */}
                     {booking.status === 'ready_for_pickup' && (
-                      <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
-                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
-                        <InvoiceUpload
-                          bookingId={booking.id}
-                          currentInvoice={booking.invoiceUrl || null}
-                          onUpload={(url) => {
-                            setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
-                          }}
-                        />
+                      <div className="space-y-4">
+                        <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+                          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-3">Payment</p>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-[11px] text-gray-500 font-medium mb-1">Outstanding Amount</label>
+                              <div className="relative max-w-xs">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">₹</span>
+                                <input type="number" min="0" value={(draftChanges[booking.id]?.outstandingAmount ?? booking.outstandingAmount ?? '')} onChange={(e) => setDraft(booking.id, { outstandingAmount: e.target.value === '' ? (null as unknown as number) : Number(e.target.value) })}
+                                  placeholder="0"
+                                  className="w-full pl-8 pr-3 py-2.5 rounded-lg bg-white border border-gray-200 text-gray-900 text-[13px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-[11px] text-gray-500 font-medium mb-1.5">Payment Status</label>
+                              <div className="flex gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input type="radio" name={`payment-d-${booking.id}`} value="not_paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'not_paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'not_paid' })}
+                                    className="w-4 h-4 text-gray-400 border-gray-300 focus:ring-gray-400" />
+                                  <span className="text-[13px] text-gray-600">Not Paid</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input type="radio" name={`payment-d-${booking.id}`} value="paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'paid' })}
+                                    className="w-4 h-4 text-green-500 border-gray-300 focus:ring-green-400" />
+                                  <span className="text-[13px] text-gray-600">Paid</span>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+                          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
+                          <InvoiceUpload
+                            bookingId={booking.id}
+                            currentInvoice={booking.invoiceUrl || null}
+                            onUpload={(url) => {
+                              setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
+                            }}
+                          />
+                        </div>
                       </div>
                     )}
 

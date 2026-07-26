@@ -32,6 +32,7 @@ interface TrackBooking {
   pickupAddress: string | null; pickupLandmark: string | null; pincode: string | null; invoiceUrl: string | null;
   pickupDate: string | null; pickupTimeSlot: string | null;
   customerRating: number | null;
+  outstandingAmount: number | null; paymentStatus: string;
   createdAt: string; updatedAt: string;
 }
 
@@ -368,7 +369,29 @@ export default function TrackPage() {
                 </div>
               )}
 
-              {booking.status === 'completed' && (
+              {(booking.outstandingAmount !== null || booking.paymentStatus === 'paid') && (
+                <div className="mb-6 p-4 rounded-xl bg-gray-50 border border-gray-200">
+                  <div className="grid grid-cols-2 gap-4">
+                    {booking.outstandingAmount !== null && (
+                      <div>
+                        <p className="text-gray-400 text-[13px] uppercase tracking-wider mb-1">Outstanding Amount</p>
+                        <p className="text-gray-900 font-bold text-lg">₹{booking.outstandingAmount.toLocaleString('en-IN')}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-gray-400 text-[13px] uppercase tracking-wider mb-1">Payment Status</p>
+                      <p className={`font-semibold text-[15px] flex items-center gap-1.5 ${booking.paymentStatus === 'paid' ? 'text-green-600' : 'text-red-500'}`}>
+                        {booking.paymentStatus === 'paid' ? '🟢 Paid' : '🔴 Not Paid'}
+                      </p>
+                    </div>
+                  </div>
+                  {booking.status === 'ready_for_pickup' && booking.paymentStatus === 'not_paid' && (
+                    <p className="text-gray-500 text-[13px] mt-3">Your device is ready for dispatch. Please complete the payment and collect your device.</p>
+                  )}
+                </div>
+              )}
+
+              {booking.status === 'completed' && booking.paymentStatus === 'paid' && (
                 <div className="border-t border-gray-100 pt-5 mt-5">
                   <p className="text-gray-400 text-[13px] uppercase tracking-wider mb-3">Rate Your Experience</p>
                   {booking.customerRating !== null || ratingSubmitted ? (
@@ -468,7 +491,7 @@ export default function TrackPage() {
                                 <p className="text-[12px] text-amber-500 font-medium">📦 Waiting for Parts — Required parts are being arranged.</p>
                               )}
                               {step === 'ready_for_pickup' && (
-                                <p className="text-[12px] text-emerald-500 font-medium">📱 Ready for Dispatch — Your device is ready for dispatch.</p>
+                                <p className="text-[12px] text-emerald-500 font-medium">📱 Ready for Dispatch — Please complete the payment and collect your device.</p>
                               )}
                               {step === 'completed' && (
                                 <p className="text-[12px] text-emerald-500 font-medium">✅ Repair Completed Successfully — Thank you for choosing Sri Mobiles.</p>
