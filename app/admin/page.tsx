@@ -719,40 +719,6 @@ export default function AdminPage() {
                     )}
                   </div>
 
-                  {/* Before/After Images */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <PhotoUpload
-                      bookingId={booking.id}
-                      label="Before"
-                      type="before"
-                      currentImage={booking.beforeImage}
-                      onUpload={(url) => updatePhoto(booking.id, 'beforeImage', url)}
-                      onPreview={setPreviewImage}
-                      compact
-                    />
-                    <AfterPhotosUpload
-                      bookingId={booking.id}
-                      currentImages={(() => {
-                        try { return JSON.parse(booking.afterImages || '[]'); } catch { return booking.afterImage ? [booking.afterImage] : []; }
-                      })()}
-                      onUpload={(urls) => {
-                        setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, afterImages: JSON.stringify(urls), afterImage: urls[0] || null } : b));
-                        setDraft(booking.id, { afterImages: JSON.stringify(urls), afterImage: urls[0] || '' });
-                      }}
-                      onPreview={setPreviewImage}
-                      compact
-                    />
-                  </div>
-                  <VideoUpload
-                    bookingId={booking.id}
-                    currentVideo={booking.videoUrl}
-                    onUpload={(url) => {
-                      setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, videoUrl: url } : b));
-                      setDraft(booking.id, { videoUrl: url });
-                    }}
-                    compact
-                  />
-
                   {/* Action Buttons Stacked */}
                   <div className="space-y-2 pt-0.5">
                     <button
@@ -786,46 +752,80 @@ export default function AdminPage() {
                     <MessageCircle className="w-4 h-4" /> Send WhatsApp Update
                   </a>
 
-                  {/* Invoice & Payment - Ready for Dispatch */}
+                  {/* Ready for Dispatch */}
                   {booking.status === 'ready_for_pickup' && (
                     <div className="space-y-3">
-                      <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
-                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Payment</p>
-                        <div className="space-y-2.5">
-                          <div>
-                            <label className="block text-[11px] text-gray-500 font-medium mb-1">Outstanding Amount</label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">₹</span>
-                              <input type="number" min="0" value={(draftChanges[booking.id]?.outstandingAmount ?? booking.outstandingAmount ?? '')} onChange={(e) => setDraft(booking.id, { outstandingAmount: e.target.value === '' ? (null as unknown as number) : Number(e.target.value) })}
-                                placeholder="0"
-                                className="w-full pl-8 pr-3 py-2.5 rounded-lg bg-white border border-gray-200 text-gray-900 text-[13px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
+                          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Payment</p>
+                          <div className="space-y-2">
+                            <div>
+                              <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Outstanding Amount</label>
+                              <div className="relative">
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-medium">₹</span>
+                                <input type="number" min="0" value={(draftChanges[booking.id]?.outstandingAmount ?? booking.outstandingAmount ?? '')} onChange={(e) => setDraft(booking.id, { outstandingAmount: e.target.value === '' ? (null as unknown as number) : Number(e.target.value) })}
+                                  placeholder="0"
+                                  className="w-full pl-7 pr-2.5 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 text-[12px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
+                              </div>
                             </div>
-                          </div>
-                          <div>
-                            <label className="block text-[11px] text-gray-500 font-medium mb-1.5">Payment Status</label>
-                            <div className="flex gap-3">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name={`payment-${booking.id}`} value="not_paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'not_paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'not_paid' })}
-                                  className="w-4 h-4 text-gray-400 border-gray-300 focus:ring-gray-400" />
-                                <span className="text-[13px] text-gray-600">Not Paid</span>
-                              </label>
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name={`payment-${booking.id}`} value="paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'paid' })}
-                                  className="w-4 h-4 text-green-500 border-gray-300 focus:ring-green-400" />
-                                <span className="text-[13px] text-gray-600">Paid</span>
-                              </label>
+                            <div>
+                              <label className="block text-[10px] text-gray-500 font-medium mb-0.5">Payment Status</label>
+                              <div className="flex gap-2">
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                  <input type="radio" name={`payment-${booking.id}`} value="not_paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'not_paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'not_paid' })}
+                                    className="w-3.5 h-3.5 text-gray-400 border-gray-300 focus:ring-gray-400" />
+                                  <span className="text-[11px] text-gray-600">Not Paid</span>
+                                </label>
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                  <input type="radio" name={`payment-${booking.id}`} value="paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'paid' })}
+                                    className="w-3.5 h-3.5 text-green-500 border-gray-300 focus:ring-green-400" />
+                                  <span className="text-[11px] text-gray-600">Paid</span>
+                                </label>
+                              </div>
                             </div>
                           </div>
                         </div>
+                        <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
+                          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
+                          <InvoiceUpload
+                            bookingId={booking.id}
+                            currentInvoice={booking.invoiceUrl || null}
+                            onUpload={(url) => {
+                              setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
-                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
-                        <InvoiceUpload
+                      <div className="grid grid-cols-3 gap-3">
+                        <PhotoUpload
                           bookingId={booking.id}
-                          currentInvoice={booking.invoiceUrl || null}
-                          onUpload={(url) => {
-                            setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
+                          label="Before"
+                          type="before"
+                          currentImage={booking.beforeImage}
+                          onUpload={(url) => updatePhoto(booking.id, 'beforeImage', url)}
+                          onPreview={setPreviewImage}
+                          compact
+                        />
+                        <AfterPhotosUpload
+                          bookingId={booking.id}
+                          currentImages={(() => {
+                            try { return JSON.parse(booking.afterImages || '[]'); } catch { return booking.afterImage ? [booking.afterImage] : []; }
+                          })()}
+                          onUpload={(urls) => {
+                            setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, afterImages: JSON.stringify(urls), afterImage: urls[0] || null } : b));
+                            setDraft(booking.id, { afterImages: JSON.stringify(urls), afterImage: urls[0] || '' });
                           }}
+                          onPreview={setPreviewImage}
+                          compact
+                        />
+                        <VideoUpload
+                          bookingId={booking.id}
+                          currentVideo={booking.videoUrl}
+                          onUpload={(url) => {
+                            setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, videoUrl: url } : b));
+                            setDraft(booking.id, { videoUrl: url });
+                          }}
+                          compact
                         />
                       </div>
                     </div>
@@ -957,45 +957,76 @@ export default function AdminPage() {
                       ) : null}
                     </div>
 
-                    {/* Invoice & Payment - Ready for Dispatch */}
+                    {/* Ready for Dispatch */}
                     {booking.status === 'ready_for_pickup' && (
                       <div className="space-y-4">
-                        <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
-                          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-3">Payment</p>
-                          <div className="space-y-3">
-                            <div>
-                              <label className="block text-[11px] text-gray-500 font-medium mb-1">Outstanding Amount</label>
-                              <div className="relative max-w-xs">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">₹</span>
-                                <input type="number" min="0" value={(draftChanges[booking.id]?.outstandingAmount ?? booking.outstandingAmount ?? '')} onChange={(e) => setDraft(booking.id, { outstandingAmount: e.target.value === '' ? (null as unknown as number) : Number(e.target.value) })}
-                                  placeholder="0"
-                                  className="w-full pl-8 pr-3 py-2.5 rounded-lg bg-white border border-gray-200 text-gray-900 text-[13px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+                            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-3">Payment</p>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-[11px] text-gray-500 font-medium mb-1">Outstanding Amount</label>
+                                <div className="relative max-w-xs">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">₹</span>
+                                  <input type="number" min="0" value={(draftChanges[booking.id]?.outstandingAmount ?? booking.outstandingAmount ?? '')} onChange={(e) => setDraft(booking.id, { outstandingAmount: e.target.value === '' ? (null as unknown as number) : Number(e.target.value) })}
+                                    placeholder="0"
+                                    className="w-full pl-8 pr-3 py-2.5 rounded-lg bg-white border border-gray-200 text-gray-900 text-[13px] focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-200 transition-all" />
+                                </div>
                               </div>
-                            </div>
-                            <div>
-                              <label className="block text-[11px] text-gray-500 font-medium mb-1.5">Payment Status</label>
-                              <div className="flex gap-4">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                  <input type="radio" name={`payment-d-${booking.id}`} value="not_paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'not_paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'not_paid' })}
-                                    className="w-4 h-4 text-gray-400 border-gray-300 focus:ring-gray-400" />
-                                  <span className="text-[13px] text-gray-600">Not Paid</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                  <input type="radio" name={`payment-d-${booking.id}`} value="paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'paid' })}
-                                    className="w-4 h-4 text-green-500 border-gray-300 focus:ring-green-400" />
-                                  <span className="text-[13px] text-gray-600">Paid</span>
-                                </label>
+                              <div>
+                                <label className="block text-[11px] text-gray-500 font-medium mb-1.5">Payment Status</label>
+                                <div className="flex gap-4">
+                                  <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name={`payment-d-${booking.id}`} value="not_paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'not_paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'not_paid' })}
+                                      className="w-4 h-4 text-gray-400 border-gray-300 focus:ring-gray-400" />
+                                    <span className="text-[13px] text-gray-600">Not Paid</span>
+                                  </label>
+                                  <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name={`payment-d-${booking.id}`} value="paid" checked={(draftChanges[booking.id]?.paymentStatus ?? booking.paymentStatus) === 'paid'} onChange={() => setDraft(booking.id, { paymentStatus: 'paid' })}
+                                      className="w-4 h-4 text-green-500 border-gray-300 focus:ring-green-400" />
+                                    <span className="text-[13px] text-gray-600">Paid</span>
+                                  </label>
+                                </div>
                               </div>
                             </div>
                           </div>
+                          <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+                            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
+                            <InvoiceUpload
+                              bookingId={booking.id}
+                              currentInvoice={booking.invoiceUrl || null}
+                              onUpload={(url) => {
+                                setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
+                              }}
+                            />
+                          </div>
                         </div>
-                        <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
-                          <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
-                          <InvoiceUpload
+                        <div className="grid grid-cols-3 gap-4">
+                          <PhotoUpload
                             bookingId={booking.id}
-                            currentInvoice={booking.invoiceUrl || null}
+                            label="Before"
+                            type="before"
+                            currentImage={booking.beforeImage}
+                            onUpload={(url) => updatePhoto(booking.id, 'beforeImage', url)}
+                            onPreview={setPreviewImage}
+                          />
+                          <AfterPhotosUpload
+                            bookingId={booking.id}
+                            currentImages={(() => {
+                              try { return JSON.parse(booking.afterImages || '[]'); } catch { return booking.afterImage ? [booking.afterImage] : []; }
+                            })()}
+                            onUpload={(urls) => {
+                              setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, afterImages: JSON.stringify(urls), afterImage: urls[0] || null } : b));
+                              setDraft(booking.id, { afterImages: JSON.stringify(urls), afterImage: urls[0] || '' });
+                            }}
+                            onPreview={setPreviewImage}
+                          />
+                          <VideoUpload
+                            bookingId={booking.id}
+                            currentVideo={booking.videoUrl}
                             onUpload={(url) => {
-                              setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, invoiceUrl: url } : b));
+                              setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, videoUrl: url } : b));
+                              setDraft(booking.id, { videoUrl: url });
                             }}
                           />
                         </div>
@@ -1025,37 +1056,6 @@ export default function AdminPage() {
                         </button>
                       </div>
                     )}
-
-                    {/* Before/After + Management */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <PhotoUpload
-                        bookingId={booking.id}
-                        label="Before"
-                        type="before"
-                        currentImage={booking.beforeImage}
-                        onUpload={(url) => updatePhoto(booking.id, 'beforeImage', url)}
-                        onPreview={setPreviewImage}
-                      />
-                      <AfterPhotosUpload
-                        bookingId={booking.id}
-                        currentImages={(() => {
-                          try { return JSON.parse(booking.afterImages || '[]'); } catch { return booking.afterImage ? [booking.afterImage] : []; }
-                        })()}
-                        onUpload={(urls) => {
-                          setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, afterImages: JSON.stringify(urls), afterImage: urls[0] || null } : b));
-                          setDraft(booking.id, { afterImages: JSON.stringify(urls), afterImage: urls[0] || '' });
-                        }}
-                        onPreview={setPreviewImage}
-                      />
-                    </div>
-                    <VideoUpload
-                      bookingId={booking.id}
-                      currentVideo={booking.videoUrl}
-                      onUpload={(url) => {
-                        setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, videoUrl: url } : b));
-                        setDraft(booking.id, { videoUrl: url });
-                      }}
-                    />
 
                     <div className="flex items-center gap-2 pt-1">
                       <button
