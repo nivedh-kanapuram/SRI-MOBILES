@@ -17,7 +17,7 @@ interface AdminBooking {
   additionalNotes: string | null;
   status: string; adminNotes: string | null; createdAt: string;
   customerPhoto: string | null;
-  beforeImage: string | null; afterImage: string | null;
+  beforeImage: string | null; afterImage: string | null; afterImages: string | null; videoUrl: string | null;
   serviceType: string; visitDate: string | null; visitTimeSlot: string | null;
   pickupAddress: string | null; pickupLandmark: string | null;
   pickupLatitude: number | null; pickupLongitude: number | null;
@@ -33,6 +33,8 @@ interface DraftChanges {
   status?: string;
   beforeImage?: string;
   afterImage?: string;
+  afterImages?: string;
+  videoUrl?: string;
 }
 
 const statuses = [
@@ -41,7 +43,7 @@ const statuses = [
   { value: 'diagnosis_complete', label: 'Diagnosis Complete', icon: <AlertCircle className="w-3 h-3" />, color: 'text-orange-600 bg-orange-50' },
   { value: 'repair_in_progress', label: 'Repair In Progress', icon: <AlertCircle className="w-3 h-3" />, color: 'text-yellow-600 bg-yellow-50' },
   { value: 'waiting_for_parts', label: 'Waiting for Parts', icon: <Clock className="w-3 h-3" />, color: 'text-orange-600 bg-orange-50' },
-  { value: 'ready_for_pickup', label: 'Ready for Pickup', icon: <CheckCircle className="w-3 h-3" />, color: 'text-green-600 bg-green-50' },
+  { value: 'ready_for_pickup', label: 'Ready for Dispatch', icon: <CheckCircle className="w-3 h-3" />, color: 'text-green-600 bg-green-50' },
   { value: 'completed', label: 'Completed', icon: <CheckCircle className="w-3 h-3" />, color: 'text-emerald-600 bg-emerald-50' },
   { value: 'cancelled', label: 'Cancelled', icon: <XCircle className="w-3 h-3" />, color: 'text-red-600 bg-red-50' },
 ];
@@ -144,7 +146,7 @@ export default function AdminPage() {
           setNotification(data);
           setBookings(prev => {
             if (prev.some(b => b.id === data.bookingId)) return prev;
-            return [{ ...data, id: data.bookingId, status: 'booking_confirmed', phone: '', email: null, problem: '', issueCategory: null, additionalNotes: null, adminNotes: null, serviceType: 'self_visit', customerPhoto: null, beforeImage: null, afterImage: null, customerRating: null, invoiceUrl: null, visitDate: null, visitTimeSlot: null, pickupAddress: null, pickupLandmark: null, pincode: null, pickupLatitude: null, pickupLongitude: null, pickupDate: null, pickupTimeSlot: null, user: { name: '', email: '' }, review: null }, ...prev];
+            return [{ ...data, id: data.bookingId, status: 'booking_confirmed', phone: '', email: null, problem: '', issueCategory: null, additionalNotes: null, adminNotes: null, serviceType: 'self_visit', customerPhoto: null, beforeImage: null, afterImage: null, afterImages: null, videoUrl: null, customerRating: null, invoiceUrl: null, visitDate: null, visitTimeSlot: null, pickupAddress: null, pickupLandmark: null, pincode: null, pickupLatitude: null, pickupLongitude: null, pickupDate: null, pickupTimeSlot: null, user: { name: '', email: '' }, review: null }, ...prev];
           });
           setStats(prev => prev ? { ...prev, total: prev.total + 1, pending: prev.pending + 1 } : prev);
         } catch (e) { console.error('[SSE] Error processing notification:', e); }
@@ -251,18 +253,20 @@ export default function AdminPage() {
         );
       }
 
-      if (draft.beforeImage !== undefined || draft.afterImage !== undefined) {
-        promises.push(
-          fetch('/api/admin/photos', {
-            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              bookingId: id,
-              ...(draft.beforeImage !== undefined && { beforeImage: draft.beforeImage === '' ? null : draft.beforeImage }),
-              ...(draft.afterImage !== undefined && { afterImage: draft.afterImage === '' ? null : draft.afterImage }),
-            }),
-          })
-        );
-      }
+    if (draft.beforeImage !== undefined || draft.afterImage !== undefined || draft.afterImages !== undefined || draft.videoUrl !== undefined) {
+      promises.push(
+        fetch('/api/admin/photos', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bookingId: id,
+            ...(draft.beforeImage !== undefined && { beforeImage: draft.beforeImage === '' ? null : draft.beforeImage }),
+            ...(draft.afterImage !== undefined && { afterImage: draft.afterImage === '' ? null : draft.afterImage }),
+            ...(draft.afterImages !== undefined && { afterImages: draft.afterImages }),
+            ...(draft.videoUrl !== undefined && { videoUrl: draft.videoUrl === '' ? null : draft.videoUrl }),
+          }),
+        })
+      );
+    }
 
       await Promise.all(promises);
       setDraftChanges(prev => { const { [id]: _, ...rest } = prev; return rest; });
@@ -711,7 +715,7 @@ export default function AdminPage() {
                   </div>
 
                   {/* Before/After Images */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-2">
                     <PhotoUpload
                       bookingId={booking.id}
                       label="Before"
@@ -721,16 +725,28 @@ export default function AdminPage() {
                       onPreview={setPreviewImage}
                       compact
                     />
-                    <PhotoUpload
+                    <AfterPhotosUpload
                       bookingId={booking.id}
-                      label="After"
-                      type="after"
-                      currentImage={booking.afterImage}
-                      onUpload={(url) => updatePhoto(booking.id, 'afterImage', url)}
+                      currentImages={(() => {
+                        try { return JSON.parse(booking.afterImages || '[]'); } catch { return booking.afterImage ? [booking.afterImage] : []; }
+                      })()}
+                      onUpload={(urls) => {
+                        setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, afterImages: JSON.stringify(urls), afterImage: urls[0] || null } : b));
+                        setDraft(booking.id, { afterImages: JSON.stringify(urls), afterImage: urls[0] || '' });
+                      }}
                       onPreview={setPreviewImage}
                       compact
                     />
                   </div>
+                  <VideoUpload
+                    bookingId={booking.id}
+                    currentVideo={booking.videoUrl}
+                    onUpload={(url) => {
+                      setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, videoUrl: url } : b));
+                      setDraft(booking.id, { videoUrl: url });
+                    }}
+                    compact
+                  />
 
                   {/* Action Buttons Stacked */}
                   <div className="space-y-2 pt-0.5">
@@ -765,7 +781,7 @@ export default function AdminPage() {
                     <MessageCircle className="w-4 h-4" /> Send WhatsApp Update
                   </a>
 
-                  {/* Invoice Upload - Ready for Pickup */}
+                  {/* Invoice Upload - Ready for Dispatch */}
                   {booking.status === 'ready_for_pickup' && (
                     <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100">
                       <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
@@ -905,7 +921,7 @@ export default function AdminPage() {
                       ) : null}
                     </div>
 
-                    {/* Invoice Upload - Ready for Pickup */}
+                    {/* Invoice Upload - Ready for Dispatch */}
                     {booking.status === 'ready_for_pickup' && (
                       <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
                         <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Invoice</p>
@@ -944,7 +960,7 @@ export default function AdminPage() {
                     )}
 
                     {/* Before/After + Management */}
-                    <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-start gap-3 flex-wrap">
                       <PhotoUpload
                         bookingId={booking.id}
                         label="Before"
@@ -953,15 +969,26 @@ export default function AdminPage() {
                         onUpload={(url) => updatePhoto(booking.id, 'beforeImage', url)}
                         onPreview={setPreviewImage}
                       />
-                      <PhotoUpload
+                      <AfterPhotosUpload
                         bookingId={booking.id}
-                        label="After"
-                        type="after"
-                        currentImage={booking.afterImage}
-                        onUpload={(url) => updatePhoto(booking.id, 'afterImage', url)}
+                        currentImages={(() => {
+                          try { return JSON.parse(booking.afterImages || '[]'); } catch { return booking.afterImage ? [booking.afterImage] : []; }
+                        })()}
+                        onUpload={(urls) => {
+                          setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, afterImages: JSON.stringify(urls), afterImage: urls[0] || null } : b));
+                          setDraft(booking.id, { afterImages: JSON.stringify(urls), afterImage: urls[0] || '' });
+                        }}
                         onPreview={setPreviewImage}
                       />
                     </div>
+                    <VideoUpload
+                      bookingId={booking.id}
+                      currentVideo={booking.videoUrl}
+                      onUpload={(url) => {
+                        setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, videoUrl: url } : b));
+                        setDraft(booking.id, { videoUrl: url });
+                      }}
+                    />
 
                     <div className="flex items-center gap-2 pt-1">
                       <button
@@ -1211,6 +1238,252 @@ function InvoiceUpload({ bookingId, currentInvoice, onUpload }: {
         </button>
       )}
       <input ref={inputRef} type="file" accept=".pdf" onChange={handleFile} className="hidden" />
+    </div>
+  );
+}
+
+function AfterPhotosUpload({ bookingId, currentImages, onUpload, onPreview, compact }: {
+  bookingId: string;
+  currentImages: string[];
+  onUpload: (urls: string[]) => void;
+  onPreview: (url: string | null) => void;
+  compact?: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [images, setImages] = useState<string[]>(currentImages);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const totalAfter = images.length + files.length;
+    if (totalAfter > 15) {
+      alert(`Maximum 15 images allowed. You already have ${images.length}.`);
+      return;
+    }
+
+    setUploading(true);
+    const uploaded: string[] = [];
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    for (const file of Array.from(files)) {
+      if (!allowed.includes(file.type)) {
+        alert(`Skipping ${file.name}: Only JPG, PNG, and WEBP files are allowed.`);
+        continue;
+      }
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bookingId', bookingId);
+      formData.append('type', 'after');
+      try {
+        const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Upload failed');
+        const { url } = await res.json();
+        uploaded.push(url);
+      } catch {
+        alert(`Failed to upload ${file.name}.`);
+      }
+    }
+    setUploading(false);
+    const allUrls = [...images, ...uploaded];
+    setImages(allUrls);
+    onUpload(allUrls);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    const updated = images.filter((_, i) => i !== index);
+    setImages(updated);
+    onUpload(updated);
+  };
+
+  if (compact) {
+    return (
+      <div className="flex-1">
+        <p className="text-[11px] text-gray-400 mb-1">After Photos</p>
+        {images.length > 0 ? (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap gap-1">
+              {images.slice(0, 4).map((url, i) => (
+                <button key={i} onClick={() => onPreview(url)} className="group relative">
+                  <img src={url} alt={`After ${i + 1}`} className="w-14 h-14 rounded-lg object-cover border border-gray-200" />
+                  <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/10 transition-all" />
+                </button>
+              ))}
+              {images.length > 4 && (
+                <div className="w-14 h-14 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-[11px] text-gray-500 font-medium">
+                  +{images.length - 4}
+                </div>
+              )}
+            </div>
+            <div className="flex gap-1">
+              <button onClick={() => inputRef.current?.click()}
+                className="flex-1 py-1.5 rounded-lg text-[10px] font-medium text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition-all leading-none">
+                {uploading ? 'Uploading...' : 'Add / Replace'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => inputRef.current?.click()} disabled={uploading}
+            className="w-full flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50">
+            {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+            {uploading ? '...' : 'Upload Photos'}
+          </button>
+        )}
+        <input ref={inputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp" onChange={handleFiles} className="hidden" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <span className="text-sm text-gray-500 font-medium">After Photos:</span>
+      {images.length > 0 ? (
+        <div className="flex flex-wrap gap-2 mt-1.5">
+          {images.map((url, i) => (
+            <div key={i} className="relative group">
+              <button onClick={() => onPreview(url)}>
+                <img src={url} alt={`After ${i + 1}`} className="w-16 h-16 rounded-lg object-cover border border-gray-200 cursor-pointer hover:opacity-80 transition-all" />
+              </button>
+              <button onClick={() => removeImage(i)}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 shadow-sm">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+          {images.length < 15 && (
+            <button onClick={() => inputRef.current?.click()}
+              className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400 hover:text-sky-500 hover:border-sky-300 transition-all">
+              <Upload className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+      ) : (
+        <button onClick={() => inputRef.current?.click()} disabled={uploading}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50 mt-1.5">
+          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+          {uploading ? 'Uploading...' : 'Upload Photos'}
+        </button>
+      )}
+      <input ref={inputRef} type="file" multiple accept=".jpg,.jpeg,.png,.webp" onChange={handleFiles} className="hidden" />
+    </div>
+  );
+}
+
+function VideoUpload({ bookingId, currentVideo, onUpload, compact }: {
+  bookingId: string;
+  currentVideo: string | null;
+  onUpload: (url: string) => void;
+  compact?: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(currentVideo);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowed = ['video/mp4', 'video/quicktime', 'video/webm'];
+    if (!allowed.includes(file.type)) {
+      alert('Only MP4, MOV, and WEBM files are allowed.');
+      return;
+    }
+
+    if (file.size > 100 * 1024 * 1024) {
+      alert('Video must be under 100 MB.');
+      return;
+    }
+
+    const tempUrl = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = tempUrl;
+    await new Promise((resolve) => { video.onloadedmetadata = resolve; });
+    if (video.duration > 120) {
+      URL.revokeObjectURL(tempUrl);
+      alert('Video must be 2 minutes or less.');
+      return;
+    }
+    URL.revokeObjectURL(tempUrl);
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('bookingId', bookingId);
+    try {
+      const res = await fetch('/api/admin/upload/video', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Upload failed');
+      const { url } = await res.json();
+      setVideoUrl(url);
+      onUpload(url);
+    } catch {
+      alert('Failed to upload video. Please try again.');
+    }
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const removeVideo = () => {
+    setVideoUrl(null);
+    onUpload('');
+  };
+
+  if (compact) {
+    return (
+      <div className="mt-2">
+        <p className="text-[11px] text-gray-400 mb-1">Repair Video</p>
+        {videoUrl ? (
+          <div className="flex flex-col gap-1.5">
+            <video src={videoUrl} controls className="w-full max-h-32 rounded-lg border border-gray-200" />
+            <div className="flex gap-1">
+              <button onClick={removeVideo}
+                className="flex-1 py-1.5 rounded-lg text-[10px] font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all leading-none">
+                Remove
+              </button>
+              <button onClick={() => inputRef.current?.click()}
+                className="flex-1 py-1.5 rounded-lg text-[10px] font-medium text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition-all leading-none">
+                Replace
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => inputRef.current?.click()} disabled={uploading}
+            className="w-full flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50">
+            {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+            {uploading ? '...' : 'Upload Video'}
+          </button>
+        )}
+        <input ref={inputRef} type="file" accept=".mp4,.mov,.webm" onChange={handleFile} className="hidden" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3">
+      <span className="text-sm text-gray-500 font-medium">Repair Video:</span>
+      {videoUrl ? (
+        <div className="flex items-center gap-2 mt-1.5">
+          <video src={videoUrl} controls className="w-48 h-28 rounded-lg border border-gray-200 object-cover" />
+          <div className="flex flex-col gap-1">
+            <button onClick={removeVideo}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-all">
+              <X className="w-3 h-3" /> Remove
+            </button>
+            <button onClick={() => inputRef.current?.click()}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition-all">
+              <Upload className="w-3 h-3" /> Replace
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => inputRef.current?.click()} disabled={uploading}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all disabled:opacity-50 mt-1.5">
+          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+          {uploading ? 'Uploading...' : 'Upload Video (MP4, MOV, WEBM)'}
+        </button>
+      )}
+      <input ref={inputRef} type="file" accept=".mp4,.mov,.webm" onChange={handleFile} className="hidden" />
     </div>
   );
 }

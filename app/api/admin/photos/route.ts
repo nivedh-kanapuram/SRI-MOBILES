@@ -9,12 +9,14 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { bookingId, beforeImage, afterImage } = await req.json();
+  const { bookingId, beforeImage, afterImage, afterImages, videoUrl } = await req.json();
   if (!bookingId) return NextResponse.json({ error: 'Missing bookingId' }, { status: 400 });
 
   const data: Record<string, string | null> = {};
   if (beforeImage !== undefined) data.beforeImage = beforeImage;
   if (afterImage !== undefined) data.afterImage = afterImage;
+  if (afterImages !== undefined) data.afterImages = afterImages;
+  if (videoUrl !== undefined) data.videoUrl = videoUrl;
 
   const booking = await prisma.booking.update({ where: { id: bookingId }, data });
   return NextResponse.json(booking);

@@ -16,7 +16,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; b
   diagnosis_complete: { label: 'Diagnosis Complete', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', icon: <AlertCircle className="w-4 h-4" /> },
   repair_in_progress: { label: 'Repair In Progress', color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200', icon: <AlertCircle className="w-4 h-4" /> },
   waiting_for_parts: { label: 'Waiting for Parts', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', icon: <Clock className="w-4 h-4" /> },
-  ready_for_pickup: { label: 'Ready for Pickup', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', icon: <CheckCircle className="w-4 h-4" /> },
+  ready_for_pickup: { label: 'Ready for Dispatch', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', icon: <CheckCircle className="w-4 h-4" /> },
   completed: { label: 'Completed', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', icon: <CheckCircle className="w-4 h-4" /> },
   cancelled: { label: 'Cancelled', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', icon: <XCircle className="w-4 h-4" /> },
   pending: { label: 'Booking Confirmed', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', icon: <CheckCircle className="w-4 h-4" /> },
@@ -27,7 +27,7 @@ interface TrackBooking {
   trackingId: string; fullName: string; phone: string; email: string | null;
   deviceType: string; brand: string; model: string; problem: string; issueCategory: string | null;
   status: string; adminNotes: string | null; serviceType: string;
-  beforeImage: string | null; afterImage: string | null;
+  beforeImage: string | null; afterImage: string | null; afterImages: string | null; videoUrl: string | null;
   visitDate: string | null; visitTimeSlot: string | null;
   pickupAddress: string | null; pickupLandmark: string | null; pincode: string | null; invoiceUrl: string | null;
   pickupDate: string | null; pickupTimeSlot: string | null;
@@ -51,6 +51,7 @@ export default function TrackPage() {
   const [selectedRating, setSelectedRating] = useState(0);
   const [submittingRating, setSubmittingRating] = useState(false);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!toast) return;
@@ -281,7 +282,7 @@ export default function TrackPage() {
                 </p>
                 <p className="text-amber-700 font-semibold text-[15px]">
                   {booking.status === 'completed' && new Date(booking.updatedAt).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
-                  {booking.status === 'ready_for_pickup' && `${new Date(booking.updatedAt).toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })} — Visit our store to collect`}
+                  {booking.status === 'ready_for_pickup' && `${new Date(booking.updatedAt).toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })} — Ready for dispatch`}
                   {!['completed', 'ready_for_pickup', 'cancelled'].includes(booking.status) && (
                     new Date().getHours() < 14
                       ? `Today by 6:00 PM`
@@ -298,20 +299,62 @@ export default function TrackPage() {
                 </div>
               )}
 
-              {(booking.beforeImage || booking.afterImage) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  {booking.beforeImage && (
-                    <div>
-                      <p className="text-gray-400 text-[13px] uppercase tracking-wider mb-2">Before Repair</p>
-                      <img src={booking.beforeImage} alt="Before repair" className="w-full rounded-xl border border-gray-200" />
+              {(() => {
+                const afterPhotos: string[] = (() => {
+                  try { const p = JSON.parse(booking.afterImages || '[]'); return Array.isArray(p) && p.length > 0 ? p : []; } catch { return []; }
+                })();
+                const hasAfterPhotos = afterPhotos.length > 0 || !!booking.afterImage;
+                const displayAfterPhotos = afterPhotos.length > 0 ? afterPhotos : (booking.afterImage ? [booking.afterImage] : []);
+                return (booking.beforeImage || hasAfterPhotos) ? (
+                  <div className="mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {booking.beforeImage && (
+                        <div>
+                          <p className="text-gray-400 text-[13px] uppercase tracking-wider mb-2">Before Repair</p>
+                          <button onClick={() => setLightboxUrl(booking.beforeImage)} className="w-full">
+                            <img src={booking.beforeImage} alt="Before repair" className="w-full rounded-xl border border-gray-200 cursor-pointer hover:opacity-90 transition-all" />
+                          </button>
+                        </div>
+                      )}
+                      {displayAfterPhotos.length > 0 && (
+                        <div>
+                          <p className="text-gray-400 text-[13px] uppercase tracking-wider mb-2">After Repair</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {displayAfterPhotos.slice(0, 6).map((url, i) => (
+                              <button key={i} onClick={() => setLightboxUrl(url)} className="group relative">
+                                <img src={url} alt={`After repair ${i + 1}`} className="w-full aspect-square rounded-lg object-cover border border-gray-200 cursor-pointer hover:opacity-90 transition-all" />
+                                {i === 5 && displayAfterPhotos.length > 6 && (
+                                  <div className="absolute inset-0 rounded-lg bg-black/50 flex items-center justify-center">
+                                    <span className="text-white text-lg font-bold">+{displayAfterPhotos.length - 6}</span>
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                          {displayAfterPhotos.length > 6 && (
+                            <button onClick={() => setLightboxUrl(displayAfterPhotos[6])} className="text-[13px] text-sky-600 hover:text-sky-700 font-medium mt-1.5">
+                              View all {displayAfterPhotos.length} photos
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {booking.afterImage && (
-                    <div>
-                      <p className="text-gray-400 text-[13px] uppercase tracking-wider mb-2">After Repair</p>
-                      <img src={booking.afterImage} alt="After repair" className="w-full rounded-xl border border-gray-200" />
-                    </div>
-                  )}
+                    {booking.videoUrl && (
+                      <div className="mt-4">
+                        <p className="text-gray-400 text-[13px] uppercase tracking-wider mb-2">Repair Completion Video</p>
+                        <video src={booking.videoUrl} controls className="w-full max-w-lg rounded-xl border border-gray-200" />
+                      </div>
+                    )}
+                  </div>
+                ) : null;
+              })()}
+
+              {lightboxUrl && (
+                <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxUrl(null)}>
+                  <button onClick={() => setLightboxUrl(null)} className="absolute top-4 right-4 text-white/80 hover:text-white transition-all">
+                    <XCircle className="w-8 h-8" />
+                  </button>
+                  <img src={lightboxUrl} alt="Full size" className="max-w-full max-h-full rounded-xl object-contain" onClick={(e) => e.stopPropagation()} />
                 </div>
               )}
 
@@ -425,7 +468,7 @@ export default function TrackPage() {
                                 <p className="text-[12px] text-amber-500 font-medium">📦 Waiting for Parts — Required parts are being arranged.</p>
                               )}
                               {step === 'ready_for_pickup' && (
-                                <p className="text-[12px] text-emerald-500 font-medium">📱 Ready for Pickup — Your device is ready for collection.</p>
+                                <p className="text-[12px] text-emerald-500 font-medium">📱 Ready for Dispatch — Your device is ready for dispatch.</p>
                               )}
                               {step === 'completed' && (
                                 <p className="text-[12px] text-emerald-500 font-medium">✅ Repair Completed Successfully — Thank you for choosing Sri Mobiles.</p>

@@ -12,7 +12,7 @@ const statusSteps = [
   { key: 'diagnosis_complete', label: 'Diagnosis Complete' },
   { key: 'repair_in_progress', label: 'Repair In Progress' },
   { key: 'waiting_for_parts', label: 'Waiting for Parts' },
-  { key: 'ready_for_pickup', label: 'Ready for Pickup' },
+  { key: 'ready_for_pickup', label: 'Ready for Dispatch' },
   { key: 'completed', label: 'Completed' },
 ];
 
