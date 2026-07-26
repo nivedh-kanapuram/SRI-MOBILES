@@ -1,11 +1,11 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import { MAINTENANCE_MODE } from '@/lib/maintenance';
 
 const maintenanceAllowedPaths = [
   '/admin',
   '/api/admin',
   '/api/auth',
-  '/api/settings',
   '/auth/signin',
   '/auth',
   '/maintenance',
@@ -16,30 +16,14 @@ const maintenanceAllowedPaths = [
 ];
 
 export default withAuth(
-  async function middleware(req) {
-    const path = req.nextUrl.pathname;
-
-    if (path.startsWith('/api/settings')) {
-      return NextResponse.next();
-    }
-
-    try {
-      const res = await fetch(`${req.nextUrl.origin}/api/settings/maintenance`, {
-        signal: AbortSignal.timeout(3000),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.maintenanceMode === true) {
-          const isAllowed = maintenanceAllowedPaths.some(p => path === p || path.startsWith(p + '/'));
-          if (!isAllowed) {
-            return NextResponse.redirect(new URL('/maintenance', req.url));
-          }
-        }
+  function middleware(req) {
+    if (MAINTENANCE_MODE) {
+      const path = req.nextUrl.pathname;
+      const isAllowed = maintenanceAllowedPaths.some(p => path === p || path.startsWith(p + '/'));
+      if (!isAllowed) {
+        return NextResponse.redirect(new URL('/maintenance', req.url));
       }
-    } catch {
-      // If settings fetch fails, proceed normally
     }
-
     return NextResponse.next();
   },
   {

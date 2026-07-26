@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Clock, AlertCircle, CheckCircle, XCircle, Users, Smartphone, ChevronDown, MessageCircle, ThumbsUp, ThumbsDown, MapPin, Tag, Calendar, Clock3, Store, Upload, X, Save, Copy, Phone, ChevronUp, Maximize2, Trash2, Download, Star, FileText, Filter, Wrench } from 'lucide-react';
+import { Loader2, Clock, AlertCircle, CheckCircle, XCircle, Users, Smartphone, ChevronDown, MessageCircle, ThumbsUp, ThumbsDown, MapPin, Tag, Calendar, Clock3, Store, Upload, X, Save, Copy, Phone, ChevronUp, Maximize2, Trash2, Download, Star, FileText, Filter } from 'lucide-react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import ProblemDescription from '@/components/ui/ProblemDescription';
 
@@ -70,8 +70,6 @@ export default function AdminPage() {
   const [dateTo, setDateTo] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [maintenanceSaving, setMaintenanceSaving] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [notification, setNotification] = useState<{ bookingId: string; trackingId: string | null; fullName: string; deviceType: string; brand: string; model: string; createdAt: string } | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
@@ -203,7 +201,6 @@ export default function AdminPage() {
       Promise.all([
         fetch('/api/admin/bookings').then(r => r.json()),
         fetch('/api/admin/stats').then(r => r.json()),
-        fetch('/api/settings/maintenance').then(r => r.json()).then(d => setMaintenanceMode(d.maintenanceMode)),
       ]).then(([b, s]) => { setBookings(b); setStats(s); setLoading(false); });
     }
   }, [status, router]);
@@ -238,27 +235,6 @@ export default function AdminPage() {
   const updatePhoto = (id: string, type: 'beforeImage' | 'afterImage', url: string) => {
     setBookings(prev => prev.map(b => b.id === id ? { ...b, [type]: url } : b));
     setDraft(id, { [type === 'beforeImage' ? 'beforeImage' : 'afterImage']: url });
-  };
-
-  const toggleMaintenance = async () => {
-    setMaintenanceSaving(true);
-    try {
-      const newVal = maintenanceMode ? 'false' : 'true';
-      const res = await fetch('/api/admin/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'maintenanceMode', value: newVal }),
-      });
-      if (res.ok) {
-        setMaintenanceMode(newVal === 'true');
-        setToast({ message: `Maintenance mode turned ${newVal === 'true' ? 'ON' : 'OFF'}`, type: 'success' });
-      } else {
-        setToast({ message: 'Failed to update maintenance mode', type: 'error' });
-      }
-    } catch {
-      setToast({ message: 'Failed to update maintenance mode', type: 'error' });
-    }
-    setMaintenanceSaving(false);
   };
 
   const saveChanges = async (id: string) => {
@@ -465,7 +441,7 @@ export default function AdminPage() {
         </div>
 
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 sm:gap-4 mb-6 sm:mb-8">
             {[
               { label: 'Total Bookings', value: stats.total, icon: <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-sky-500' },
               { label: 'Pending', value: stats.pending, icon: <Clock className="w-4 h-4 sm:w-5 sm:h-5" />, color: 'bg-yellow-500' },
@@ -482,34 +458,6 @@ export default function AdminPage() {
             ))}
           </div>
         )}
-
-        {/* Maintenance Mode Toggle */}
-        <div className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-card mb-4 sm:mb-6">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <Wrench className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
-              <span className="text-sm sm:text-[15px] font-semibold text-gray-700">Website Maintenance Mode</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" name="maintenance" value="false" checked={!maintenanceMode} onChange={toggleMaintenance} disabled={maintenanceSaving}
-                  className="w-3.5 h-3.5 text-gray-400 border-gray-300 focus:ring-gray-400" />
-                <span className={`text-[13px] ${maintenanceMode ? 'text-gray-400' : 'text-gray-700 font-medium'}`}>OFF</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" name="maintenance" value="true" checked={maintenanceMode} onChange={toggleMaintenance} disabled={maintenanceSaving}
-                  className="w-3.5 h-3.5 text-red-500 border-gray-300 focus:ring-red-400" />
-                <span className={`text-[13px] ${maintenanceMode ? 'text-red-600 font-medium' : 'text-gray-400'}`}>ON</span>
-              </label>
-              {maintenanceSaving && <Loader2 className="w-4 h-4 animate-spin text-gray-400" />}
-            </div>
-          </div>
-          {maintenanceMode && (
-            <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" /> Maintenance mode is active. Public users will see the maintenance page.
-            </p>
-          )}
-        </div>
 
         {/* Search + Filter + Export */}
         <div className="flex flex-col sm:flex-row gap-2 mb-3">

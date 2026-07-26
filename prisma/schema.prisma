@@ -74,13 +74,6 @@ model DeletedBooking {
   phone      String
   deletedAt  DateTime @default(now())
 }
-
-model AppSetting {
-  key       String   @id
-  value     String
-  updatedAt DateTime @updatedAt
-}
-
 model Review {
   id        String   @id @default(uuid())
   userId    String
