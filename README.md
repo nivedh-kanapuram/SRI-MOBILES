@@ -1,4 +1,4 @@
-# 📱 Sri Mobiles - Multi Brand Mobile & Laptop Service Center
+<h1 align="center">🚀 Sri Mobiles | Modern Business Website</h1>  
 
 <p align="center">
   <strong>A modern, responsive business website for Sri Mobiles – Multi Brand Mobile & Laptop Service Center.</strong>
