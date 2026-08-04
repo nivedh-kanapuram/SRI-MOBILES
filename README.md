@@ -12,10 +12,9 @@
 
 ## 📖 About The Project
 
-Sri Mobiles is a modern business website developed to provide customers with a professional online experience. The website showcases repair services, supported brands, customer testimonials, FAQs, contact information, and an online repair request form in a clean and responsive interface.
+The project is a modern business website developed to provide customers with a professional online experience. The website showcases repair services, supported brands, customer testimonials, FAQs, contact information, and an online repair request form in a clean and responsive interface.
 
-The goal of this project is to improve the digital presence of the service center while making it easier for customers to explore services and submit repair requests. The site is designed to provide information about repair services and customer support in an intuitive interface. :contentReference[oaicite:0]{index=0}
-
+The goal of this project is to improve the digital presence of the service center while making it easier for customers to explore services and submit repair requests. The site is designed to provide information about repair services and customer support in an intuitive interface. 
 ---
 
 ## ✨ Features
@@ -23,13 +22,12 @@ The goal of this project is to improve the digital presence of the service cente
 - 🎨 Modern Premium UI
 - 📱 Fully Responsive Design
 - ⚡ Fast Performance
-- 🌙 Dark Theme
 - 🎬 Smooth Animations
 - 🔧 Repair Service Showcase
 - 📲 Supported Brands Section
 - ⭐ Customer Testimonials
 - ❓ FAQ Section
-- 📝 Online Repair Request Form
+- 📝 Online Repair Booking Form
 - 📍 Google Maps Integration
 - 📞 Contact Information
 - 📈 SEO Friendly
@@ -130,22 +128,6 @@ http://localhost:3000
 - Provide easy communication options
 - Deliver a responsive user experience
 
----
-
-## 📱 Supported Brands
-
-- Apple
-- Samsung
-- Vivo
-- Oppo
-- Realme
-- Redmi
-- OnePlus
-- Motorola
-- HP
-- Dell
-- Lenovo
-- ASUS
 
 ---
 
@@ -153,9 +135,7 @@ http://localhost:3000
 
 - Online Booking Tracking
 - Service Status Updates
-- Customer Login
 - Admin Dashboard
-- Email Notifications
 - WhatsApp Integration
 
 ---
